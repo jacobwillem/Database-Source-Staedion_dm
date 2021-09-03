@@ -1,0 +1,3 @@
+CREATE SCHEMA [Datakwaliteit]
+AUTHORIZATION [dbo]
+GO

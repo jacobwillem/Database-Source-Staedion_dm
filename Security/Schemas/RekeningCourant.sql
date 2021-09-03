@@ -1,0 +1,3 @@
+CREATE SCHEMA [RekeningCourant]
+AUTHORIZATION [dbo]
+GO

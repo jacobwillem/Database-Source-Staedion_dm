@@ -1,0 +1,3 @@
+CREATE SCHEMA [Jaarrekening]
+AUTHORIZATION [dbo]
+GO

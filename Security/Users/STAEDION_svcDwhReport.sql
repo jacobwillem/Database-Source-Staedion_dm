@@ -1,0 +1,5 @@
+IF NOT EXISTS (SELECT * FROM master.dbo.syslogins WHERE loginname = N'STAEDION\svcDwhReport')
+CREATE LOGIN [STAEDION\svcDwhReport] FROM WINDOWS
+GO
+CREATE USER [STAEDION\svcDwhReport] FOR LOGIN [STAEDION\svcDwhReport]
+GO

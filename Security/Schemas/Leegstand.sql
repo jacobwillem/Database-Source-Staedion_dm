@@ -1,0 +1,3 @@
+CREATE SCHEMA [Leegstand]
+AUTHORIZATION [dbo]
+GO

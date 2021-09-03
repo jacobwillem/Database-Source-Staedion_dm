@@ -1,0 +1,3 @@
+CREATE SCHEMA [Groepering]
+AUTHORIZATION [dbo]
+GO

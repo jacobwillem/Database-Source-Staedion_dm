@@ -1,0 +1,3 @@
+CREATE SCHEMA [Liqprog]
+AUTHORIZATION [dbo]
+GO

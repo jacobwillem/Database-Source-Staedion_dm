@@ -1,0 +1,3 @@
+CREATE SCHEMA [Projecten]
+AUTHORIZATION [dbo]
+GO

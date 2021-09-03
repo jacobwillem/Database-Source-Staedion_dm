@@ -1,0 +1,3 @@
+CREATE SCHEMA [Verkoop]
+AUTHORIZATION [dbo]
+GO

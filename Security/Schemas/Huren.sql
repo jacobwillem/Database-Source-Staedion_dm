@@ -1,0 +1,3 @@
+CREATE SCHEMA [Huren]
+AUTHORIZATION [dbo]
+GO

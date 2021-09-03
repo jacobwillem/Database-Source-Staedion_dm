@@ -1,0 +1,3 @@
+CREATE SCHEMA [Eenheden]
+AUTHORIZATION [dbo]
+GO

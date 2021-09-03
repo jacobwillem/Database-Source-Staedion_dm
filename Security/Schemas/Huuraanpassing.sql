@@ -1,0 +1,3 @@
+CREATE SCHEMA [Huuraanpassing]
+AUTHORIZATION [dbo]
+GO

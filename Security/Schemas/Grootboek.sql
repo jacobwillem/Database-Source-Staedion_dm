@@ -1,0 +1,3 @@
+CREATE SCHEMA [Grootboek]
+AUTHORIZATION [dbo]
+GO

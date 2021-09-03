@@ -1,0 +1,3 @@
+CREATE SCHEMA [Magazijn]
+AUTHORIZATION [dbo]
+GO

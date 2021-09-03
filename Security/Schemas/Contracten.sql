@@ -1,0 +1,3 @@
+CREATE SCHEMA [Contracten]
+AUTHORIZATION [dbo]
+GO

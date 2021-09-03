@@ -1,0 +1,3 @@
+CREATE SCHEMA [Prolongatie]
+AUTHORIZATION [dbo]
+GO

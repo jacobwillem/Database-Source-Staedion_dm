@@ -1,0 +1,41 @@
+CREATE TABLE [RekeningCourant].[Betalingsregelingen]
+(
+[id] [int] NOT NULL IDENTITY(1, 1),
+[Peildatum] [date] NULL,
+[Bedrijf_id] [int] NULL,
+[Betalingsregeling] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[Klantnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[Huurderstatus] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
+[Openstaand saldo] [decimal] (12, 2) NULL,
+[Deurwaarderszaak] [char] (3) COLLATE Latin1_General_CI_AS NULL,
+[Derdendossier] [char] (3) COLLATE Latin1_General_CI_AS NULL,
+[Leefbaarheidsdossier] [char] (3) COLLATE Latin1_General_CI_AS NULL,
+[Klachtstatus CM] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[Eenheidnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[Clusternr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[Contract ingangsdatum] [date] NULL,
+[Thuisteam] [nvarchar] (80) COLLATE Latin1_General_CI_AS NULL,
+[Aanmaakdatum] [date] NULL,
+[Periode aanvang] [date] NULL,
+[Geplande einddatum] [date] NULL,
+[Status betalingsregeling] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
+[Afsluitreden] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[Betaalwijze regeling] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
+[Betaalwijze huur] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
+[Einddatum] [date] NULL,
+[Periode beëindiging] [date] NULL,
+[Klantposten] [int] NULL,
+[Termijnen] [int] NULL,
+[Bedrag betalingsregeling] [decimal] (12, 2) NULL,
+[Termijnbedrag] [decimal] (12, 2) NULL,
+[Volgende termijn] [date] NULL,
+[Vervallen termijnen] [int] NULL,
+[Vervallen bedrag] [decimal] (12, 2) NULL,
+[Aantal open termijnen] [int] NULL,
+[Bedrag open termijnen] [decimal] (12, 2) NULL,
+[Achterstand op betalingsregeling] [decimal] (12, 2) NULL,
+[BOG] [char] (30) COLLATE Latin1_General_CI_AS NULL
+) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [betalingsregelingen01] ON [RekeningCourant].[Betalingsregelingen] ([Peildatum], [Bedrijf_id]) ON [PRIMARY]
+GO

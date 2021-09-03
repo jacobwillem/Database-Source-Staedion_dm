@@ -1,0 +1,3 @@
+CREATE SCHEMA [Sharepoint]
+AUTHORIZATION [dbo]
+GO

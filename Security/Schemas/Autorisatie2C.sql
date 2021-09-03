@@ -1,0 +1,3 @@
+CREATE SCHEMA [Autorisatie2C]
+AUTHORIZATION [dbo]
+GO

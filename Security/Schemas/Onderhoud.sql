@@ -1,0 +1,3 @@
+CREATE SCHEMA [Onderhoud]
+AUTHORIZATION [dbo]
+GO

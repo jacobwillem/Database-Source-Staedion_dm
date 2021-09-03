@@ -1,0 +1,3 @@
+CREATE SCHEMA [Medewerker]
+AUTHORIZATION [dbo]
+GO
