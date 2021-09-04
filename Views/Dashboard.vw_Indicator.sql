@@ -7,11 +7,6 @@ GO
 
 
 
-
-
-
-
-
 CREATE VIEW [Dashboard].[vw_Indicator]
 AS
 SELECT  [Jaargang]			= JG.[Jaargang]
@@ -26,10 +21,6 @@ SELECT  [Jaargang]			= JG.[Jaargang]
 	   ,[Kpilevel]			= convert(varchar, JG.[fk_kpilevel_id]) + '. ' + KPI.[Omschrijving]
        ,JG.[Volgorde]
 	   ,JG.[Zichtbaar]
-       ,[Kleurschema]		= KS.[Omschrijving]
-       ,I.[Grenswaarde_1]
-       ,I.[Grenswaarde_2]
-       ,I.[Grenswaarde_3]
        ,[Bedrijfsonderdeel]	= BO.[Omschrijving]
        ,[Aanspreekpunt]		= AP.[Omschrijving]
        ,[WijzeVanVullen]	= WV.[Omschrijving]
@@ -37,8 +28,7 @@ SELECT  [Jaargang]			= JG.[Jaargang]
        ,[Systeembron]		= SYST.[Omschrijving]
 	   ,[Frequentie]		= FR.[Omschrijving]
 	   ,[Proces]			= PR.[Omschrijving]
-       ,I.[Marge_percentage]
-       ,I.[Url]
+       ,[Url] = I.[Detailrapport]
        ,I.[Gecontroleerd]
        ,I.[Jaarnorm]
        ,I.[Weergaveformat]
@@ -62,8 +52,6 @@ LEFT OUTER JOIN [Dashboard].[Indicatorgroep] AS IG
        ON IG.id = JG.fk_indicatorgroep_id
 LEFT OUTER JOIN [Dashboard].[Kpilevel] AS KPI
        ON KPI.id = JG.fk_kpilevel_id
-LEFT OUTER JOIN [Dashboard].[Kleurschema] AS KS
-       ON KS.id = I.fk_kleurschema_id
 LEFT OUTER JOIN [Dashboard].Bedrijfsonderdeel AS BO
        ON BO.id = JG.fk_bedrijfsonderdeel_id
 LEFT OUTER JOIN [Dashboard].Aanspreekpunt AS AP

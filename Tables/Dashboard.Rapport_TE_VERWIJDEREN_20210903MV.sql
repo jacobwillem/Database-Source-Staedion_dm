@@ -1,4 +1,4 @@
-CREATE TABLE [Dashboard].[Rapport]
+CREATE TABLE [Dashboard].[Rapport_TE_VERWIJDEREN_20210903MV]
 (
 [id] [int] NOT NULL IDENTITY(1, 1),
 [Rapport] [nvarchar] (64) COLLATE Latin1_General_CI_AS NOT NULL,
@@ -8,5 +8,7 @@ CREATE TABLE [Dashboard].[Rapport]
 [Einddatum] [date] NULL
 ) ON [PRIMARY]
 GO
-ALTER TABLE [Dashboard].[Rapport] ADD CONSTRAINT [PK_Rapport2] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
+ALTER TABLE [Dashboard].[Rapport_TE_VERWIJDEREN_20210903MV] ADD CONSTRAINT [PK_Rapport] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [IX_Rapport_Rol] ON [Dashboard].[Rapport_TE_VERWIJDEREN_20210903MV] ([Rol]) ON [PRIMARY]
 GO
