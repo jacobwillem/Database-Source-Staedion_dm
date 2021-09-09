@@ -9,6 +9,7 @@ GO
 
 
 
+
 CREATE VIEW [Datakwaliteit].[vw_Indicator]
 AS
 /*
@@ -143,8 +144,25 @@ SELECT I.id_samengesteld
 		SELECT count(*)
 		FROM Datakwaliteit.RealisatieDetails AS R1
 		JOIN [Datakwaliteit].[Indicatordimensie] AS ID ON ID.id = R1.fk_indicatordimensie_id
+		JOIN Datakwaliteit.[Indicator] as I
+			on I.[id_samengesteld] = R1.[id_samengesteld]
+		JOIN Datakwaliteit.[Indicator] as I_parent
+				on I_parent.[id] = I.[parent_id]
+		LEFT JOIN [Datakwaliteit].[Uitzondering] as UIT
+				on UIT.[sleutel_entiteit] = case I_parent.[Omschrijving]
+													when 'Eenheid' then R1.[Eenheidnr]
+													when 'Klant' then R1.[Klantnr]
+													when 'Relaties' then right(R1.[Omschrijving], 12)
+													--when 'Contracten' then coalesce(R1.Eenheidnr,'OGEH-?') + '-' +  coalesce(R1.Klantnr,'KLNT-?') + '-' + coalesce(convert(nvarchar(20), R1.datIngang, 105),'ingangsdatum ?')
+													when 'Contracten' then coalesce(nullif(R1.[Eenheidnr],''),'OGEH-?') + '-' +  coalesce(nullif(R1.[Klantnr],''),'KLNT-?')
+													when 'Medewerker' then R1.[fk_medewerker_id]
+													else 'Volgt - zie vw_RealisatieDetails'
+												end
+		AND UIT.[id_samengesteld] = R1.[id_samengesteld]
+		AND getdate() between UIT.[Startdatum] and coalesce(dateadd(day, 1, UIT.[Einddatum]), dateadd(day, 1, getdate()))
 		WHERE 1 = 1 -- ID.Omschrijving in ( 'Accuracy')
 			--AND R1.fk_indicator_id = I.id
+			AND UIT.[id] is null
 			AND R1.id_samengesteld = I.id_samengesteld
 			AND R1.Laaddatum = LD.Laaddatum
 		)

@@ -1,4 +1,4 @@
-CREATE TABLE [Grootboek].[Toegerekende grootboekposten HANDM]
+CREATE TABLE [Grootboek].[Toegerekende grootboekposten]
 (
 [Regeltype] [varchar] (13) COLLATE Latin1_General_CI_AS NOT NULL,
 [Toegerekend bedrag] [float] NULL,

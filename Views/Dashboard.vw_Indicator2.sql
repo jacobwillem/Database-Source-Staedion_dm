@@ -6,6 +6,7 @@ GO
 
 
 
+
 CREATE VIEW [Dashboard].[vw_Indicator2]
 AS
 with
@@ -21,7 +22,7 @@ select
 	,[fk_kpilevel_id] = 1
 	,[Aanduiding] = concat(I.[id], '.')
 	,[Volgorde] = row_number() over (partition by 1 order by I.[id])
-	,[Zichtbaar] = 1
+	,[Zichtbaar] = 'TRUE'
 	,[fk_bedrijfsonderdeel_id] = 5
 from [Dashboard].[Indicator] as I
 ),
@@ -38,7 +39,7 @@ select
 	,[fk_kpilevel_id] = 1
 	,[Aanduiding] = concat(I.[id], '.')
 	,[Volgorde] = row_number() over (partition by 1 order by I.[id])
-	,[Zichtbaar] = 1
+	,[Zichtbaar] = 'TRUE'
 	,[fk_bedrijfsonderdeel_id] = 5
 from [Dashboard].[Indicator] as I
 where I.[Gecontroleerd] = 1

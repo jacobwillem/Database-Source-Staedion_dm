@@ -1,4 +1,4 @@
-CREATE TABLE [Grootboek].[Output_Specificatie_Grootboekposten_Jur_Eig_WOM]
+CREATE TABLE [Rapport].[Specificatie_Grootboekposten_Jur_Eig]
 (
 [Rekeningnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Rekeningnaam] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
@@ -23,6 +23,7 @@ CREATE TABLE [Grootboek].[Output_Specificatie_Grootboekposten_Jur_Eig_WOM]
 [Toegerekende post bedrag] [decimal] (12, 2) NULL,
 [Toegerekende post ok] [bit] NULL,
 [Omschrijving] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
-[Classificatie] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL
+[Classificatie] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
+[Eigenaar] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO

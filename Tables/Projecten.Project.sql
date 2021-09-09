@@ -26,7 +26,8 @@ CREATE TABLE [Projecten].[Project]
 [Functie3_id] [int] NULL,
 [Contact No_3] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Projectleider_id] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
-[Projectleider] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL
+[Projectleider] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
+[Contractnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Projecten].[Project] ADD CONSTRAINT [PK_Project] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]

@@ -13,6 +13,7 @@ GO
 
 
 
+
 CREATE VIEW [Datakwaliteit].[CheckVinkjeGeliberaliseerdDubbel]
 AS
 /*
@@ -38,8 +39,8 @@ WHERE [Dummy Contract] = 0
 			AND coalesce(nullif(AD.[Einddatum], '17530101'), '20990101') < eomonth(dateadd(m,-13,getdate()))
 		)
 	-- Deze huurder heeft inderdaad 2 verschillende contractvormen als dit via whitelisting uitgezonderd kan worden - dan kan deze conditie er weer uit
-	and NOT(CO.[Customer No_] = 'KLNT-0083585' 
-	        and CO.Eenheidnr_ = 'OGEH-0055217')
+	--and NOT(CO.[Customer No_] = 'KLNT-0083585' 
+	--        and CO.Eenheidnr_ = 'OGEH-0055217')
 
 GROUP BY Eenheidnr_
 	,[Customer No_]

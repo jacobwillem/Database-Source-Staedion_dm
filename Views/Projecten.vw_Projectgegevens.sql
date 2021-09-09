@@ -13,6 +13,7 @@ GO
 
 
 
+
 CREATE view [Projecten].[vw_Projectgegevens]
 as 
 /* ##############################################################################################################################
@@ -21,6 +22,7 @@ METADATA
 --------------------------------------------------------------------------------------------------------------------------
 WIJZIGINGEN
 JvdW 20210823 TBV PBI rapportage budgetrapportage planmatig onderhoud
+JvdW 20210908 Contractnr toegevoegd - topdeskverzoek Nicole
 --------------------------------------------------------------------------------------------------------------------------
 TEST
 --------------------------------------------------------------------------------------------------------------------------
@@ -49,6 +51,7 @@ AANVULLENDE INFO
 	,pfa.Omschrijving Projectfase_oms
 	,prj.Geblokkeerd
 	,prj.Startdatum
+	,prj.Contractnr
 	,Begrotingsjaar = prj.Jaar -- JvdW 23-08-2021 - anders verwarrend in PBI
 	,[Begrotingsjaar relatief] = CASE 
 		WHEN month(getdate()) <> 1
@@ -135,4 +138,5 @@ LEFT OUTER JOIN empire_data.dbo.Contact AS PM ON PM.No_ = CASE
 		END
 	--where prj.Nr_ = 'PLOH-2100208'
 	--WHERE prj.Nr_ LIKE 'PLOH-20%'
+
 GO
