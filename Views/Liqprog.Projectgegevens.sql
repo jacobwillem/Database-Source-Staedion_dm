@@ -5,9 +5,11 @@ GO
 
 
 
+
 CREATE view [Liqprog].[Projectgegevens]
 as
 select 
+  [Sleutel]                                       = ROW_NUMBER() over (order by projectnummer, projectnaam),
   [Datum bijgewerkt]                              = nullif(convert(date,convert(datetime,[BIJWERKDATUM])),'1900-01-01'),
   [Projectnummer]                                 = [PROJECTNUMMER],
   [Projectnaam]                                   = [PROJECTNAAM],

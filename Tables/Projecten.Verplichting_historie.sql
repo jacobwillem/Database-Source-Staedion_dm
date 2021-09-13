@@ -15,7 +15,9 @@ CREATE TABLE [Projecten].[Verplichting_historie]
 [Orderbedrag incl. btw] [decimal] (12, 2) NULL,
 [verplicht_incl_btw] [decimal] (12, 2) NULL,
 [verplicht_excl_btw] [decimal] (12, 2) NULL,
-[Leveranciersnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL
+[Leveranciersnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[Omschrijving] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[Omschrijving 2] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Projecten].[Verplichting_historie] ADD CONSTRAINT [PK_Verplichting_historie] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]

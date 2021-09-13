@@ -3,7 +3,7 @@ CREATE TABLE [RekeningCourant].[Deurwaarderszaken]
 [Id] [int] NOT NULL IDENTITY(1, 1),
 [Peildatum] [date] NULL,
 [Bedrijf_id] [int] NULL,
-[Dosseirnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[Dossiernr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Regelnummer] [int] NULL,
 [Dossiernr deurwaarder] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Ingangsdatum] [date] NULL,

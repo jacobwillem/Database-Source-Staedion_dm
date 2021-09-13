@@ -2,17 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-
-
-
-
-
-
-
-
-
-
 CREATE   view [Projecten].[vw_Verplichtingen]
 /* ##############################################################################################################################
 --------------------------------------------------------------------------------------------------------------------------
@@ -65,10 +54,10 @@ SELECT VERPL.[id]
 	,VERPL.[verplicht_excl_btw]
 	,VERPL.Leveranciersnr
 	,Leveranciersnaam  = LEV.[Name]
+	,[Omschrijving]
+	,[Omschrijving 2]
 FROM [Projecten].Verplichting_historie as VERPL
 left outer join empire_data.dbo.vendor as LEV
 on VERPL.Leveranciersnr = LEV.No_
 LEFT OUTER JOIN cte_laaddatum AS CTE_L ON CTE_L.Peildatum = VERPL.Peildatum
-
-
 GO
