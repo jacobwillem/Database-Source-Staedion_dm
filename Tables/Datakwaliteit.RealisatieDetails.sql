@@ -34,3 +34,5 @@ CREATE NONCLUSTERED INDEX [NonClusteredIndex-20210331-124148] ON [Datakwaliteit]
 GO
 CREATE NONCLUSTERED INDEX [IX_id_samengesteld] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) ON [PRIMARY]
 GO
+CREATE NONCLUSTERED INDEX [i2_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum]) ON [PRIMARY]
+GO
