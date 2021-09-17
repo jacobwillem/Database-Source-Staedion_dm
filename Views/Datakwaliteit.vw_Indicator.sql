@@ -4,24 +4,53 @@ SET ANSI_NULLS ON
 GO
 CREATE VIEW [Datakwaliteit].[vw_Indicator]
 AS
-/*
-JvdW 26-05-2021 Omwille van performance + foutmelding
+/* ###############################################################################################################
+BETREFT: view tbv PowerBi dashboard Datakwaliteit
+
+WIJZIGINGEN
+20210526 JvdW Omwille van performance + foutmelding
 > vullingsgraad als cte
-> index
-USE [staedion_dm]
-GO
-CREATE NONCLUSTERED INDEX i1_RealisatieDetails
-ON [Datakwaliteit].[RealisatieDetails] ([fk_indicator_id])
-INCLUDE ([Laaddatum],[fk_indicatordimensie_id])
+> CREATE NONCLUSTERED INDEX i1_RealisatieDetails ON [Datakwaliteit].[RealisatieDetails] ([fk_indicator_id]) INCLUDE ([Laaddatum],[fk_indicatordimensie_id]) 
+20210914 JvdW Uitzonderingen toegevoegd + aantal fouten via cte
+> CREATE NONCLUSTERED INDEX i2_RealisatieDetails ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum])
 
-CREATE NONCLUSTERED INDEX i2_RealisatieDetails
-ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld])
-INCLUDE ([Laaddatum])
+------------------------------------------------------------------------------------------------------------------
+CHECK tellingen
+------------------------------------------------------------------------------------------------------------------
+SELECT sum([Aantal fouten minus uitzonderingen])
+	,sum([Aantal uitzonderingen])
+	,sum([Aantal fouten])
+FROM [Datakwaliteit].[vw_Indicator]
 
-[]
+SELECT count(*)
+FROM Datakwaliteit.RealisatieDetails AS R1
+WHERE R1.Laaddatum = (
+		SELECT max(R2.[Laaddatum])
+		FROM Datakwaliteit.RealisatieDetails AS R2
+		)
 
-*/
--- JvdW 20210602 Toegevoegd
+SELECT count(*)
+FROM Datakwaliteit.[Uitzondering]
+
+------------------------------------------------------------------------------------------------------------------
+CHECK tellingen - ergens nog verschillen
+------------------------------------------------------------------------------------------------------------------
+select 'view', id_samengesteld, sum([Aantal fouten])
+from [Datakwaliteit].[vw_Indicator] 
+group by id_samengesteld
+union all
+SELECT 'tabel', id_samengesteld, count(*)
+FROM Datakwaliteit.RealisatieDetails AS R1
+WHERE R1.Laaddatum = (
+		SELECT max(R2.[Laaddatum])
+		FROM Datakwaliteit.RealisatieDetails AS R2
+		)
+group by R1.id_samengesteld
+order by 2,1
+
+
+############################################################################################################### */
+
 WITH cte_laaddatum
 AS (
 	SELECT Laaddatum = max([Laaddatum])

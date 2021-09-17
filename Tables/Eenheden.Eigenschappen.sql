@@ -58,7 +58,8 @@ CREATE TABLE [Eenheden].[Eigenschappen]
 [Corpodatatype_id] [int] NULL,
 [Technisch type_id] [int] NULL,
 [Adres] AS (((([Straatnaam]+' ')+[Huisnummer])+' ')+[Huisnummer toevoeging]),
-[Eenheid + adres] AS (((((([Eenheidnr]+' ')+[Straatnaam])+' ')+[Huisnummer])+' ')+[Huisnummer toevoeging])
+[Eenheid + adres] AS (((((([Eenheidnr]+' ')+[Straatnaam])+' ')+[Huisnummer])+' ')+[Huisnummer toevoeging]),
+[Doelgroep_id] [smallint] NULL
 ) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [Egenschappen_01] ON [Eenheden].[Eigenschappen] ([Bedrijf_id], [Eenheidnr], [Ingangsdatum]) ON [PRIMARY]

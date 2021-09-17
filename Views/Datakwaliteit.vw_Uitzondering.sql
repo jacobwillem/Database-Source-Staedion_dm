@@ -9,6 +9,7 @@ GO
 
 
 
+
 CREATE VIEW [Datakwaliteit].[vw_Uitzondering]
 as 
 
@@ -23,20 +24,20 @@ select distinct
 									when 'Medewerker' then R.[fk_medewerker_id]
 									else 'Volgt - zie vw_RealisatieDetails'
 								end
-		,UIT.[id]
-		,[Uitzondering] = iif(UIT.[id] IS NULL, 0, 1)
-		,UIT.[Aangemaakt]
-		,[Aangemaakt_door] = UIT.[Aangemaakt_door]
-		,UIT.[Startdatum]
-		,UIT.[Einddatum]
-		,UIT.[Opmerking]
+		,U.[id]
+		,[Uitzondering] = iif(U.[id] IS NULL, 0, 1)
+		,U.[Aangemaakt]
+		,[Aangemaakt_door] = U.[Aangemaakt_door]
+		,U.[Startdatum]
+		,U.[Einddatum]
+		,U.[Opmerking]
 from [Datakwaliteit].[RealisatieDetails] as R
 JOIN Datakwaliteit.[Indicator] as I
        on I.[id_samengesteld] = R.[id_samengesteld]
 JOIN Datakwaliteit.[Indicator] as I_parent
        on I_parent.[id] = I.[parent_id]
-LEFT JOIN [Datakwaliteit].[Uitzondering] as UIT
-		on UIT.[sleutel_entiteit] = case I_parent.[Omschrijving]
+LEFT JOIN [Datakwaliteit].[Uitzondering] as U
+		on U.[sleutel_entiteit] = case I_parent.[Omschrijving]
 											when 'Eenheid' then R.[Eenheidnr]
 											when 'Klant' then R.[Klantnr]
 											when 'Relaties' then right(R.[Omschrijving], 12)
@@ -45,9 +46,23 @@ LEFT JOIN [Datakwaliteit].[Uitzondering] as UIT
 											when 'Medewerker' then R.[fk_medewerker_id]
 											else 'Volgt - zie vw_RealisatieDetails'
 										end
-		AND UIT.[id_samengesteld] = R.[id_samengesteld]
-		AND getdate() between UIT.[Startdatum] and coalesce(dateadd(day, 1, UIT.[Einddatum]), dateadd(day, 1, getdate()))
+		AND U.[id_samengesteld] = R.[id_samengesteld]
+		AND getdate() between U.[Startdatum] and coalesce(dateadd(day, 1, U.[Einddatum]), dateadd(day, 1, getdate()))
 WHERE I.[Zichtbaar] = 1
 and R.Laaddatum = (SELECT MAX(Laaddatum) FROM Datakwaliteit.RealisatieDetails where Laaddatum <=getdate())
+
+UNION
+
+select distinct 
+		 [id_samengesteld]
+		,[sleutel_entiteit]
+		,[id]
+		,[Uitzondering] = 1
+		,[Aangemaakt]
+		,[Aangemaakt_door]
+		,[Startdatum]
+		,[Einddatum]
+		,[Opmerking]
+from [Datakwaliteit].[Uitzondering]
 
 GO

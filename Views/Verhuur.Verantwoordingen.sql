@@ -6,6 +6,7 @@ GO
 
 
 
+
 CREATE view [Verhuur].[Verantwoordingen] as
 /* ##############################################################################################################################
 --------------------------------------------------------------------------------------------------------------------------
@@ -211,7 +212,8 @@ WITH CTE_eenzijdige_wijken
                                                 AND f.inkomen < 61692
                                            THEN 'Ja'
                                            ELSE 'nee'
-                                       END, 
+                                       END,
+
             Rekenhuur = HPR.subsidiabelehuur, 
             [Ingangsdatum contract verantwoording] = F.dt_start_contract, 
             [Ingangsdatum huurcontract] = CONT.dt_ingang, 
@@ -246,7 +248,7 @@ WITH CTE_eenzijdige_wijken
           JOIN backup_empire_dwh.dbo.doelgroep AS DG ON DG.id = E.fk_doelgroep_id
           LEFT OUTER JOIN backup_empire_dwh.dbo.klant AS K ON K.id = CONT.fk_klant_id
           LEFT OUTER JOIN CTE_eenzijdige_wijken AS CTE_CBS ON CTE_CBS.[sleutel buurt] = E.fk_cbsbuurt_id
-		  LEFT OUTER JOIN empire_staedion_data.dbo.Inkomensgrens I ON YEAR(F.dt_start_contract) = I.Jaar AND F.inkomen BETWEEN I.InkomenMin AND I.InkomenMax 
+		  LEFT OUTER JOIN empire_staedion_data.dbo.Inkomensgrens_Europaregeling I ON YEAR(F.dt_start_contract) = I.Jaar AND F.inkomen BETWEEN I.InkomenMin AND I.InkomenMax 
           --left outer join cte_contractwijzigingen as CTE_CTR
           --on CTR.[Eenheidnr_] = E.bk_nr_
           --and CTR.Ingangsdatum =  CONT.dt_ingang

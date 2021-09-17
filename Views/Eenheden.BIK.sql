@@ -4,26 +4,18 @@ SET ANSI_NULLS ON
 GO
 
 
+
 CREATE view [Eenheden].[BIK]
 as
 with cte_bik as (
-  select
-    2019 as jaar,
-    cluster,
-    Overlast = [Eindcijfer overlast & wooonfraude],
-    Teamscore = teamscore,
-    Klanttevredenheid = [kcm rapportcijfer],
-    Leefbaarometer = [Rapport cijfer-op complexniveau]
-  from excel.tmp_bik_2019
-  union all
-  select
-    2020 as jaar,
-    cluster,
-    Overlast = [Eindcijfer overlast & wooonfraude],
-    Teamscore = teamscore,
-    Klanttevredenheid = [kcm rapportcijfer],
-    Leefbaarometer = [Rapport cijfer-op complexniveau]
-  from excel.tmp_bik_2020
+  select 
+    jaar = convert(int,right(bikjaar,4)),
+    cluster = Clusternummer,
+    Overlast = OverlastWoonfraudeCijfer,
+    Teamscore = TeamscoreCijfer,
+    Klanttevredenheid = KCMCijfer,
+    Leefbaarometer = LeefbaarometerCijferCluster
+  from Leefbaarheid.BIKOpCluster 
 ),
 cte_datums as (
   select distinct datum from empire_dwh.dbo.d_bestand where datum >= '20190101'

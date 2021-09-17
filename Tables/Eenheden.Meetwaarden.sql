@@ -69,6 +69,11 @@ CREATE TABLE [Eenheden].[Meetwaarden]
 [Volgnr_] [int] NULL,
 [WOZ-peildatum] [date] NULL,
 [WOZ-objectnr] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
-[WOZ-taxatiewaarde] [decimal] (12, 2) NULL
+[WOZ-taxatiewaarde] [decimal] (12, 2) NULL,
+[Huurklasse_id] [int] NULL,
+[Huurklasse_id obv kaal] [int] NULL,
+[Huurklasse_id obv streef] [int] NULL,
+[Huurklasse_id obv mutatie] [int] NULL,
+[Huurklasse_id obv subsidiabel] [int] NULL
 ) ON [PRIMARY]
 GO

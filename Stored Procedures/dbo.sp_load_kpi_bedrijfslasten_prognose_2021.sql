@@ -36,13 +36,13 @@ BEGIN TRY
 		declare @fk_indicator_id_max as smallint
 		declare @laaddatum as date
 		declare @LoggenDetails bit = 1
-		declare @aanduiding as nvarchar(8)
+		--declare @aanduiding as nvarchar(8)
 		declare @budget as char(12)
 
 		set	@start = current_timestamp
 		select @nr = count(id) from [empire_staedion_data].[dbo].[Bedrijfslasten schema categorie]
 		select @fk_indicator_id_min = min(id), @fk_indicator_id_max = (min(id) + @nr) from [Dashboard].[Indicator] where lower([Omschrijving]) like 'bedrijfslasten%'
-		select @aanduiding = aanduiding from [Dashboard].[Indicator] where id = @fk_indicator_id_min
+		--select @aanduiding = aanduiding from [Dashboard].[Indicator] where id = @fk_indicator_id_min
 		select @budget = 'BEGR ' + format(@peildatum, 'yy_MM')
 
   -- Standaard bewaren voor kpi's de details wel

@@ -33,12 +33,12 @@ BEGIN TRY
 		declare @fk_indicator_id_max as smallint
 		declare @laaddatum as date
 		declare @LoggenDetails as bit = 1
-		declare @aanduiding as nvarchar(8)
+		--declare @aanduiding as nvarchar(8)
 
 		set	@start = current_timestamp
 		select @nr = count(id) from [empire_staedion_data].[dbo].[Bedrijfslasten schema categorie]
 		select @fk_indicator_id_min = min(id), @fk_indicator_id_max = (min(id) + @nr) from [Dashboard].[Indicator] where lower([Omschrijving]) like 'bedrijfslasten%'
-		select @aanduiding = aanduiding from [Dashboard].[Indicator] where id = @fk_indicator_id_min
+		--select @aanduiding = aanduiding from [Dashboard].[Indicator] where id = @fk_indicator_id_min
 
   -- Standaard bewaren voor kpi's de details wel
 	if @LoggenDetails = 1
@@ -240,7 +240,7 @@ BEGIN TRY
 			select		 [Datum] 
 						,[Waarde]				= sum([Bedrag per VHE])
 						,[Laaddatum]			= getdate()
-						,[Omschrijving]			= @aanduiding + cast([Nr] as nvarchar) + '. ' + [Categorie]
+						,[Omschrijving]			= cast([Nr] as nvarchar) + '. ' + [Categorie]
 						,@fk_indicator_id_min 
 			from		 [Bedrijfslasten]
 			group by	 [Nr], [Categorie], [Datum]
