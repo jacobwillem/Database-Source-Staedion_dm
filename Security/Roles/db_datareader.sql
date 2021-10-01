@@ -1,4 +1,8 @@
+ALTER ROLE [db_datareader] ADD MEMBER [dwh]
+GO
 ALTER ROLE [db_datareader] ADD MEMBER [guest]
+GO
+ALTER ROLE [db_datareader] ADD MEMBER [powerbi]
 GO
 ALTER ROLE [db_datareader] ADD MEMBER [STAEDION\Domain Users]
 GO

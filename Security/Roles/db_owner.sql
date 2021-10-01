@@ -1,2 +1,4 @@
 ALTER ROLE [db_owner] ADD MEMBER [STAEDION\rvg]
 GO
+ALTER ROLE [db_owner] ADD MEMBER [STAEDION\svcPowerBI]
+GO

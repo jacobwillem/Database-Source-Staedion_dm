@@ -5,6 +5,7 @@ GO
 
 
 
+
 CREATE view [Dashboard].[vw_DimensieJoin]
 AS
 with
@@ -29,9 +30,9 @@ Q as (
 	where R.[fk_indicator_id] is not null
 )
 
-select * from Q where ([Dimensie.naam] not in ('Detail.13', 'Detail.14', 'Detail.15', 'Detail.16')
-				   or ([Dimensie.naam] in ('Detail.13', 'Detail.14', 'Detail.15', 'Detail.16') and [Clusternummer] is not null)
-					  )
+select * from Q --where ([Dimensie.naam] not in ('Detail.13', 'Detail.14', 'Detail.15', 'Detail.16')
+				--   or ([Dimensie.naam] in ('Detail.13', 'Detail.14', 'Detail.15', 'Detail.16') and [Clusternummer] is not null)
+				--	  )
 
 --,[Dimensie.naam] = concat('Detail.', right(concat('00', row_number() over (partition by R.[fk_indicator_id] order by R.[fk_indicator_id])), 2))
 --,[Dimensie.id] = concat(R.[fk_indicator_id], '.', 'Detail.', right(concat('00', row_number() over (partition by R.[fk_indicator_id] order by R.[fk_indicator_id])), 2))

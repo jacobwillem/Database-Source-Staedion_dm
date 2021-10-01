@@ -1,0 +1,3 @@
+CREATE SCHEMA [DatabaseBeheer]
+AUTHORIZATION [dbo]
+GO

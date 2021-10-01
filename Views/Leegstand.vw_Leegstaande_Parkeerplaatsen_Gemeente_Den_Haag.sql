@@ -5,6 +5,7 @@ GO
 
 
 
+
 CREATE VIEW [Leegstand].[vw_Leegstaande_Parkeerplaatsen_Gemeente_Den_Haag]
 AS
 
@@ -33,7 +34,7 @@ WHERE LST.Boekingsgroep = '02'
        AND month(LSt.Peildatum) = MONTH(GETDATE())
        AND CORPO.Code LIKE '%PP%'
        AND LST.[Einddatum] >= cast(dateadd(d,-1,cast(GETDATE() as date)) as date)
-	   AND NOT EENH.[FT clusternr] IN ('FT-1168', 'FT-1331', 'FT-1345', 'FT-1425', 'FT-1567')
+	   AND NOT EENH.[FT clusternr] IN ('FT-1567') -- Na 20210927 nog een keer kijken of deze er niet meer tussen staat door Empire administratie update
 	   AND EENH.Plaats = 'DEN HAAG'
 GROUP BY EENH.[FT clusternr]
 		,EENH.[FT clusternr] + ' ' + EENH.[FT clusternaam]

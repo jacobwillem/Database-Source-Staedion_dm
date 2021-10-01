@@ -3,6 +3,7 @@ GO
 SET ANSI_NULLS ON
 GO
 
+
 CREATE view [Liqprog].[Prognose per project]
 as
 with cte_totaal as (
@@ -35,7 +36,7 @@ join empire_dwh.dbo.tijd as d on
     lp_jaar.soort = 'JAAR'
   left join cte_totaal as ct on ct.sleutel = pg.sleutel
 where Projectfase not in ('initiatief','verkenning')
-and pg.sleutel = 73
+--and pg.sleutel = 73
 
 --select * from Liqprog.[Prognose per project] where [Bedrag]> 0
 GO
