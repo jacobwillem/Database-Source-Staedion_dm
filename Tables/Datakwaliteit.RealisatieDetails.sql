@@ -36,3 +36,7 @@ CREATE NONCLUSTERED INDEX [IX_id_samengesteld] ON [Datakwaliteit].[RealisatieDet
 GO
 CREATE NONCLUSTERED INDEX [i2_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum]) ON [PRIMARY]
 GO
+CREATE NONCLUSTERED INDEX [i_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum], [Omschrijving], [fk_indicatordimensie_id], [Eenheidnr], [Klantnr], [fk_medewerker_id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [i3_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([Laaddatum]) ON [PRIMARY]
+GO

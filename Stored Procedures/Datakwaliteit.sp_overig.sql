@@ -6,7 +6,7 @@ CREATE  procedure [Datakwaliteit].[sp_overig]
 				(@Laaddatum as date = null, 
 				 @Entiteit as nvarchar(50) = 'Proces Huuraanpassing',
 				 @Attribuut as nvarchar(255) = 'Vinkje beeindigd contractregel',
-				 @fk_indicatordimensie_id as int = 21)  -- overig  
+				 @fk_indicatordimensie_id as int = null)  -- overig  
 AS
 /* ###################################################################################################
 BETREFT     : Procedure die door attributen in Datakwaliteit.Indicator aangeroepen kan worden om [atakwaliteit].Details mee te vullen
@@ -57,6 +57,13 @@ WIJZIGINGEN
 	exec [Datakwaliteit].[sp_overig] null, 'Contracten','Leegstandsregel ten onrechte niet verwijderd?'	-- 3008
 20210818 Versie 17 JvdW - aanpassing
 	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Attribuut = 'Afwijking in aanvangsdatum huurcontract'	 -- 3006
+20210929 Versie 18 JvdW - toevoeging
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 18 
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 19
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 20
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 21 
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Registratie van overlijden', @fk_indicatordimensie_id = 19
+	
 ------------------------------------------------------------------------------------------------------
 CHECKS                   
 ------------------------------------------------------------------------------------------------------
@@ -99,7 +106,10 @@ BEGIN TRY
 
 		select @parent_id = id from staedion_Dm.Datakwaliteit.Indicator where Omschrijving = @Entiteit;
 		select @fk_indicator_id = id from staedion_Dm.Datakwaliteit.Indicator WHERE parent_id = @parent_id and Omschrijving = @Attribuut; 
-		select @fk_indicatordimensie_id = fk_indicatordimensie_id from staedion_Dm.Datakwaliteit.Indicator where parent_id = @parent_id and Omschrijving = @Attribuut; 
+		IF @fk_indicatordimensie_id IS NULL
+			begin
+				select @fk_indicatordimensie_id = fk_indicatordimensie_id from staedion_Dm.Datakwaliteit.Indicator where parent_id = @parent_id and Omschrijving = @Attribuut; 
+			end
 
 		PRINT convert(VARCHAR(20), getdate(), 121) + @LogboekTekst + ' - BEGIN';
 		PRINT convert(VARCHAR(20), getdate(), 121) + ' @Entiteit = '+@Entiteit + ' -  attribuut = ' + @attribuut;
@@ -120,12 +130,12 @@ BEGIN TRY
 
 		if @fk_indicator_id is not null	
 			begin 
-				delete from [Datakwaliteit].[RealisatieDetails] where convert(date,Laaddatum) = convert(date,@Laaddatum) and fk_indicator_id = @fk_indicator_id ;--and (fk_indicatordimensie_id = @fk_indicatordimensie_id OR @fk_indicatordimensie_id IS NULL);
+				delete from [Datakwaliteit].[RealisatieDetails] where convert(date,Laaddatum) = convert(date,@Laaddatum) and fk_indicator_id = @fk_indicator_id and (fk_indicatordimensie_id = @fk_indicatordimensie_id OR @fk_indicatordimensie_id IS NULL);
 								;
 				SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails verwijderd: ' + format(@@ROWCOUNT, 'N0');
 				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
 
-				delete from [Datakwaliteit].[Realisatie] where convert(date,Laaddatum) = convert(date,@Laaddatum) and fk_indicator_id = @fk_indicator_id ;--and (fk_indicatordimensie_id = @fk_indicatordimensie_id OR @fk_indicatordimensie_id IS NULL);
+				delete from [Datakwaliteit].[Realisatie] where convert(date,Laaddatum) = convert(date,@Laaddatum) and fk_indicator_id = @fk_indicator_id and (fk_indicatordimensie_id = @fk_indicatordimensie_id OR @fk_indicatordimensie_id IS NULL);
 								;
 				SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie verwijderd: ' + format(@@ROWCOUNT, 'N0');
 				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
@@ -982,8 +992,176 @@ BEGIN TRY
 								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;													
 					end
 --------------------------------------------------------------------------------------------------------------
+				if @Attribuut ='Telefoonnummer'	 -- 6023
 
-			end
+					BEGIN
+							--Check validiteit: Check: voldoen de volgende telefoonnummers (Telefoon + [Telefoon 2] aan vereiste schrijfwijze
+							--BRON: Datakwaliteit.vw_TelefoonnummersAfwijkendeSchrijfwijze
+							--18
+							INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								SELECT Omschrijving = ' Telefoon huishoudkaart = ' + BASIS.[Telefoon (huishoudkaart)] +  
+															' Telefoon 2 huishoudkaart = ' + BASIS.[Telefoon 2 (huishoudkaart)] +
+															' Klantnr = ' + BASIS.Klantnr 
+											 ,1
+											 ,1
+											 ,BASIS.Klantnr
+											 ,@Laaddatum
+											 ,@fk_indicator_id
+											 ,@fk_indicatordimensie_id
+								from		Datakwaliteit.vw_TelefoonnummersAfwijkendeSchrijfwijze as BASIS		
+								WHERE		@fk_indicatordimensie_id = 18
+								;
+
+								SET @AantalRecords = @@ROWCount
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
+								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
+									;
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;													
+
+								--Check accuratesse: Leeg veld voor Telefoonnummer en Telefoonnummer overdag van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart), maar een of andere telefoonvelden wel gevuld
+								--BRON: Datakwaliteit.vw_TelefoonnummersVeldenNietGebruiken
+								--19
+								insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								SELECT Omschrijving =  ' Telefoon klantkaart = ' + BASIS.[Telefoon (klantkaart)] +  
+															' Telefoon overdag klantkaart = ' + BASIS.[Telefoon overdag (klantkaart)] +
+															' Telefoon mobiel klantkaart = ' + BASIS.[Mobiel (klantkaart)] +
+															' Klantnr = ' + BASIS.Klantnr 
+											 ,1
+											 ,1
+											 ,BASIS.Klantnr
+											 ,@Laaddatum
+											 ,@fk_indicator_id
+											 ,@fk_indicatordimensie_id
+								-- select top 10 *
+								from		Datakwaliteit.vw_TelefoonnummersVeldenNietGebruiken as BASIS
+								WHERE		@fk_indicatordimensie_id = 19				
+								;
+
+								SET @AantalRecords = @@ROWCount
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
+								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
+								;
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
+
+								INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								--Check consistentie: Veld Telefoonnummer of [Telefoon overdag]  of [Telefoon 2] van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart) is verschilt van bijbehorende huishoudkaart
+								--BRON: Datakwaliteit.vw_TelefoonnummersKlantkaartHuishoudkaart
+								--20
+								SELECT Omschrijving =  ' Telefoon klantkaart = ' + BASIS.[Telefoon (klantkaart)] +  
+															' Telefoon huishoudkaart = ' + BASIS.[Telefoon (huishoudkaart)] +
+															' Telefoon 2 klantkaart = ' + BASIS.[Telefoon 2 (klantkaart)] +  
+															' Telefoon 2 huishoudkaart = ' + BASIS.[Telefoon 2 (huishoudkaart)] +
+															' Klantnr = ' + BASIS.Klantnr 
+											 ,1
+											 ,1
+											 ,BASIS.Klantnr
+											 ,@Laaddatum
+											 ,@fk_indicator_id
+											 ,@fk_indicatordimensie_id
+								-- select top 10 *
+								from		Datakwaliteit.vw_TelefoonnummersKlantkaartHuishoudkaart as BASIS
+								WHERE		@fk_indicatordimensie_id = 20		
+								;
+								
+								SET @AantalRecords = @@ROWCount
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
+								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
+									;
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
+								
+								INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								--Check overig: Tegen afspraak in zijn bepaalde telefoonvelden nog gevuld: Veld [Telefoon 3] + [Telefoon 4] + [Telefoon 5] + [Telefoon overdag] van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart) 
+								--BRON: Datakwaliteit.vw_TelefoonnummersVeldenTeWissen
+								--21
+								SELECT Omschrijving =  ' Telefoon overdag klantkaart = ' + BASIS.[Telefoon overdag (klantkaart)] +  
+															' Telefoon 3 klantkaart = ' + BASIS.[Telefoon 3 (klantkaart)] +  
+															' Telefoon 4 klantkaart = ' + BASIS.[Telefoon 4 (klantkaart)] +  
+															' Telefoon 5 klantkaart = ' + BASIS.[Telefoon 5 (klantkaart)]  +
+															' Klantnr = ' + BASIS.Klantnr  
+											 ,1
+											 ,1
+											 ,BASIS.Klantnr
+											 ,@Laaddatum
+											 ,@fk_indicator_id
+											 ,@fk_indicatordimensie_id
+								-- select top 10 *
+								from		Datakwaliteit.vw_TelefoonnummersVeldenTeWissen as BASIS		
+								WHERE		@fk_indicatordimensie_id = 21									
+								;
+								
+								SET @AantalRecords = @@ROWCount
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
+								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
+								;
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;											
+								
+					END
+
+--------------------------------------------------------------------------------------------------------------
+				if @Attribuut = 'Registratie van overlijden'	 -- 6024
+
+					BEGIN
+								--Check accuratesse: Leeg veld voor Telefoonnummer en Telefoonnummer overdag van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart), maar een of andere telefoonvelden wel gevuld
+								--BRON: Datakwaliteit.vw_TelefoonnummersVeldenNietGebruiken
+								--19
+								insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								SELECT Omschrijving =  ' Controle-bevinding = ' + BASIS.[Controle-bevinding] +
+															' Aanhefcode = ' + BASIS.[Aanhefcode hoofdhuurder] +  
+															' Overlijdensdatum = ' + CONVERT(NVARCHAR(20), BASIS.Overlijdensdatum,105) +
+															' Klantnr = ' + BASIS.Klantnr 
+											 ,1
+											 ,1
+											 ,BASIS.Klantnr
+											 ,@Laaddatum
+											 ,@fk_indicator_id
+											 ,@fk_indicatordimensie_id
+								-- select top 10 *
+								from		Datakwaliteit.vw_IndicatieKlantOverleden as BASIS
+								WHERE		@fk_indicatordimensie_id = 19
+								AND			[Controle-bevinding] IS NOT null
+								ORDER BY	[Controle-bevinding] asc
+								;
+
+								SET @AantalRecords = @@ROWCount
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
+								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
+								;
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
+
+		
+						END
+--------------------------------------------------------------------------------------------------------------
+		end
 
 		set		@finish = current_timestamp
 

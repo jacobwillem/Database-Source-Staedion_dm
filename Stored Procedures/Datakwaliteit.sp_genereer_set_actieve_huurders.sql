@@ -51,7 +51,7 @@ BEGIN TRY
 		-- Datakwaliteit van welke huurders:
 		DROP TABLE IF EXISTS Datakwaliteit.SetHuurdersTeChecken
 		;
-		SELECT   Klantnr, Peildatum, [Huishoudnr], Laaddatum = @Laaddatum
+		SELECT   Klantnr, Peildatum, [Huishoudnr], [Actief huurcontract], Laaddatum = @Laaddatum
 		into	 Datakwaliteit.SetHuurdersTeChecken
 		FROM	[Datakwaliteit].[fn_HuurderFilter](@Laaddatum, DEFAULT)
 		where	 Klantboekingsgroep = 'HUURDERS'
