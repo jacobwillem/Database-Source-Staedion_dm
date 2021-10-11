@@ -3,7 +3,7 @@ GO
 SET ANSI_NULLS ON
 GO
 
-create PROCEDURE [dbo].[dsp_load_dashboard_diverse] 
+CREATE PROCEDURE [dbo].[dsp_load_dashboard_diverse] 
 @Begindatum datetime = null
 as
 /* ##################################################################################################################
@@ -11,11 +11,10 @@ as
 METADATA
 ---------------------------------------------------------------------------------------------------------------------
 VAN			JvdW
-BETREFT		Vullen feitentabellen met betrekking tot creditmanagement: storno's, specifieke betalingen
-			> staedion_dm.RekeningCourant.KlantpostenDetails
-			> staedion_dm.RekeningCourant.BankmutatiesDetails
-			> 
-ZIE			Ontvangstverwerking huuradministratie.pbix
+BETREFT		Omwille van performance vullen volgende tabellen (voorheen waren die views)
+			> staedion_dm.Dashboard.RealisatiePrognose
+			> staedion_dm.[Dashboard].[DimensieJoin]
+ZIE			Jaarplan.pbix
 
 ---------------------------------------------------------------------------------------------------------------------
 WIJZIGINGEN		

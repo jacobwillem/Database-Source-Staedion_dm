@@ -3,8 +3,8 @@ CREATE TABLE [bak].[AantallenStartBouwOplevering]
 [Id] [int] NOT NULL IDENTITY(1, 1),
 [Title] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
 [Pad] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[JaarValue] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[StartOpleveringValue] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
+[Jaar] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
+[StartOplevering] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
 [Norm] [int] NULL,
 [Jan] [float] NULL,
 [Feb] [float] NULL,
@@ -19,15 +19,13 @@ CREATE TABLE [bak].[AantallenStartBouwOplevering]
 [Nov] [float] NULL,
 [Dec] [float] NULL,
 [Totaal] [float] NULL,
-[GemaaktDoor.Naam] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[GewijzigdDoor.Naam] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[Projectmanager.Naam] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[TypeProject.Value] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[Jaar.Value] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
-[StartOplevering.Value] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
+[GemaaktDoor] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
+[GewijzigdDoor] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
+[Projectmanager] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
+[TypeProject] [nvarchar] (max) COLLATE Latin1_General_CI_AS NULL,
 [TijdstipGenereren] [datetime] NULL,
 [Peildatum] [date] NULL,
-[gemaakt] [datetimeoffset] NULL,
-[gewijzigd] [datetimeoffset] NULL
+[Gemaakt] [datetimeoffset] NULL,
+[Gewijzigd] [datetimeoffset] NULL
 ) ON [PRIMARY]
 GO

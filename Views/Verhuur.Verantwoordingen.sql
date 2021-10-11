@@ -136,7 +136,16 @@ WITH CTE_eenzijdige_wijken
      --FROM empire_Data.dbo.[staedion$Additioneel]
      -- )
 
-	 CTE_huishouden
+	 -- BEGIN 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
+	 CTE_korting_leegstandsbeheer
+	 AS (SELECT [fk_contract_id] = CONT.id
+		   FROM backup_empire_dwh.dbo.[contract] AS CONT
+		   JOIN empire_data.dbo.Staedion$Element E on CONT.volgnummer = E.Volgnummer
+		    AND CONT.bk_eenheidnr = E.Eenheidnr_
+		    AND E.Nr_ = '064'
+	 ),
+
+	 CTE_uitzondering
 	 AS (
 	 SELECT  F.[fk_contract_id]
 			,[Huishouden] = CASE
@@ -148,13 +157,16 @@ WITH CTE_eenzijdige_wijken
 								WHEN F.inkomenscategorie_passendheid LIKE 'meerpers%; AOW%' THEN 'MPOHH3'
 								ELSE NULL
 							END
-	 
-	 FROM backup_empire_dwh.dbo.f_verantwoording_verhuring F
-	 LEFT OUTER JOIN empire_staedion_data.dbo.Passendtoewijzen_Uitzondering U ON YEAR(F.dt_start_contract) = U.Jaar AND U.Eenheidnummer = F.bk_eenheidnr_
-	 WHERE [fk_contract_id] NOT IN ('', '-1')
-	 AND contract_aanwezig <> 'Contract vervallen'
+			,[Korting leefstandsbeheer] = iif(K.fk_contract_id IS NOT NULL, 1, 0)
+	 FROM backup_empire_dwh.dbo.[contract] AS CONT
+          LEFT OUTER JOIN backup_empire_dwh.dbo.f_verantwoording_verhuring AS F ON CONT.id = F.fk_contract_id
+		  LEFT OUTER JOIN empire_staedion_data.dbo.Passendtoewijzen_Uitzondering U ON YEAR(F.dt_start_contract) = U.Jaar AND U.Eenheidnummer = F.bk_eenheidnr_
+		  LEFT OUTER JOIN CTE_korting_leegstandsbeheer K ON CONT.id = K.fk_contract_id
+	 WHERE F.[fk_contract_id] NOT IN ('', '-1')
+	 AND F.contract_aanwezig <> 'Contract vervallen'
 	 AND U.Eenheidnummer IS NULL
 	 )
+	 -- EIND 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
 
      SELECT [Datum ingang contract] = COALESCE(CONT.dt_ingang, F.dt_start_contract), 
             [Contract aanwezig] = F.contract_aanwezig, 
@@ -224,7 +236,7 @@ WITH CTE_eenzijdige_wijken
 								WHEN I.Inkomensgrens = 'Hoog' THEN 2
 								WHEN I.Inkomensgrens IS NULL THEN 3
 							END,
-			I.Aandeel,
+			[Europaregeling norm] = I.Aandeel,
             [Huurtoeslag gerechtigd] = CASE
                                            WHEN f.contractanten = 1
                                                 AND f.inkomen < 30846
@@ -260,16 +272,26 @@ WITH CTE_eenzijdige_wijken
                                             END
                                    END
 			,[Naam huurder] = K.descr
-			,[Huishouden] = H.Huishouden
-			,[Max inkomen] = P.InkomenMax
-			,[Regeling van toepassing] = IIF(F.inkomen < P.InkomenMax 
+			
+			-- BEGIN 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
+			,[Huishouden]			= U.Huishouden
+			,[Max inkomen]			= P.InkomenMax
+			,[Passendheidsregeling] = IIF(F.inkomen < P.InkomenMax 
 											AND F.geliberaliseerd = 'Niet geliberaliseerd'
-											AND F.inkomen > 10, 1, 0)
+											AND F.inkomen > 10
+											AND U.[Korting leefstandsbeheer] = 0
+											AND TT.fk_eenheid_type_corpodata_id IN ('WON ZELF', 'WON ONZ'), 1, 0)
 			,P.[Aftoppingsgrens]
-			,[Passend toegewezen] = IIF(F.inkomen < P.InkomenMax 
-										AND F.geliberaliseerd = 'Niet geliberaliseerd'
-										AND F.inkomen > 10
-										AND HPR.subsidiabelehuur < P.[Aftoppingsgrens], 1 , 0)
+			,[Passend toegewezen]	= IIF(F.inkomen < P.InkomenMax 
+											AND F.geliberaliseerd = 'Niet geliberaliseerd'
+											AND F.inkomen > 10
+											AND U.[Korting leefstandsbeheer] = 0
+											AND TT.fk_eenheid_type_corpodata_id IN ('WON ZELF', 'WON ONZ')
+											AND HPR.subsidiabelehuur <= P.[Aftoppingsgrens], 1 , 0)
+			,U.[Korting leefstandsbeheer]
+			,[Passend toewijzen norm] = P.Aandeel
+			-- EIND 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
+
 			-- select F.*
      FROM backup_empire_dwh.dbo.[contract] AS CONT
           LEFT OUTER JOIN backup_empire_dwh.dbo.f_verantwoording_verhuring AS F ON CONT.id = F.fk_contract_id
@@ -280,8 +302,8 @@ WITH CTE_eenzijdige_wijken
           LEFT OUTER JOIN backup_empire_dwh.dbo.klant AS K ON K.id = CONT.fk_klant_id
           LEFT OUTER JOIN CTE_eenzijdige_wijken AS CTE_CBS ON CTE_CBS.[sleutel buurt] = E.fk_cbsbuurt_id
 		  LEFT OUTER JOIN empire_staedion_data.dbo.Europaregeling_Inkomensgrens I ON YEAR(F.dt_start_contract) = I.Jaar AND F.inkomen BETWEEN I.InkomenMin AND I.InkomenMax
-		  LEFT OUTER JOIN CTE_huishouden H ON CONT.id = H.fk_contract_id
-		  LEFT OUTER JOIN empire_staedion_data.dbo.Passendtoewijzen_Inkomensgrens P ON YEAR(F.dt_start_contract) = P.Jaar AND H.Huishouden = P.Huishouden
+		  LEFT OUTER JOIN CTE_uitzondering U ON CONT.id = U.fk_contract_id
+		  LEFT OUTER JOIN empire_staedion_data.dbo.Passendtoewijzen_Inkomensgrens P ON YEAR(F.dt_start_contract) = P.Jaar AND U.Huishouden = P.Huishouden
           --left outer join cte_contractwijzigingen as CTE_CTR
           --on CTR.[Eenheidnr_] = E.bk_nr_
           --and CTR.Ingangsdatum =  CONT.dt_ingang

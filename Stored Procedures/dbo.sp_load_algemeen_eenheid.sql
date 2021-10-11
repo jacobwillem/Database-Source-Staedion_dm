@@ -350,46 +350,20 @@ select
                                         else 'Onbekend'
                                       end,
   [Doelgroep]                       = tar.Description,
-  [Streefhuursegmentatie]           = case tar.description
-                                        when '1e aftop SWY cat 2' then 'Aftoppingsgrens laag'
-                                        when '1e aftop SWY cat 3' then 'Aftoppingsgrens laag'
-                                        when '1e aftoppingsgrens (2 pers)' then 'Aftoppingsgrens laag'
-                                        when '2e aftop grote woning' then 'Aftoppingsgrens hoog'
-                                        when '2e aftop grote woning SWY cat2' then 'Aftoppingsgrens hoog'
-                                        when '2e aftop SWY cat 2' then 'Aftoppingsgrens hoog'
-                                        when '2e aftop SWY cat 3' then 'Aftoppingsgrens hoog'
-                                        when '2e aftoppingsgrens (3 pers)' then 'Aftoppingsgrens hoog'
-                                        when 'hpg grote woning' then 'Huurprijsgrens'
-                                        when 'hpg grote woning SWY cat 3' then 'Huurprijsgrens'
-                                        when 'hpg SWY cat 3' then 'Huurprijsgrens'
-                                        when 'Huurprijsgrens' then 'Huurprijsgrens'
-                                        when 'kkg SWY cat 1' then 'Kwaliteitskortingsgrens'
-                                        when 'Kwaliteitskortingsgrens' then 'Kwaliteitskortingsgrens'
-                                        when 'was doelgroepcode B, nu C' then 'Aftoppingsgrens hoog'
-                                        when 'was doelgroepcode B, nu D' then 'Huurprijsgrens'
-                                        when 'was doelgroepcode C, nu D' then 'Huurprijsgrens'
-                                        else 'Vrije sector'
+  [Streefhuursegmentatie]           = case 
+                                        when tar.description like 'A%' then 'Kwaliteitskortingsgrens'
+                                        when tar.description like 'B%' then 'Aftoppingsgrens laag'
+                                        when tar.description like 'C%' then 'Aftoppingsgrens hoog'
+                                        when tar.description like 'D%' then 'Tot huurprijsgrens'
+                                        else 'Boven huurprijsgrens'
                                       end,
-  [Streefhuursegmentatie sortering] = case tar.description
-                                        when '1e aftop SWY cat 2' then 2
-                                        when '1e aftop SWY cat 3' then 2
-                                        when '1e aftoppingsgrens (2 pers)' then 2
-                                        when '2e aftop grote woning' then 3
-                                        when '2e aftop grote woning SWY cat2' then 3
-                                        when '2e aftop SWY cat 2' then 3
-                                        when '2e aftop SWY cat 3' then 3
-                                        when '2e aftoppingsgrens (3 pers)' then 3
-                                        when 'hpg grote woning' then 4
-                                        when 'hpg grote woning SWY cat 3' then 4
-                                        when 'hpg SWY cat 3' then 4
-                                        when 'Huurprijsgrens' then 4
-                                        when 'kkg SWY cat 1' then 1
-                                        when 'Kwaliteitskortingsgrens' then 1
-                                        when 'was doelgroepcode B, nu C' then 3
-                                        when 'was doelgroepcode B, nu D' then 4
-                                        when 'was doelgroepcode C, nu D' then 4
+  [Streefhuursegmentatie sortering] = case 
+                                        when tar.description like 'A%' then 1
+                                        when tar.description like 'B%' then 2
+                                        when tar.description like 'C%' then 3
+                                        when tar.description like 'D%' then 4
                                         else 5
-                                      END,
+                                      end,
    [Voorheen Vestia] = CONVERT(NVARCHAR(10),NULL)	,												-- JvdW 12-03-2021
    [Huidig contract met reden huurverlaging] = CONVERT(NVARCHAR(20),NULL),							-- JvdW 12-03-2021
 	 [EAN Code Electriciteit] = o.[EAN Code Electricity],											-- JvdW 23-06-2021

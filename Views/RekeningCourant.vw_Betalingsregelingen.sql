@@ -2,7 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
 CREATE VIEW [RekeningCourant].[vw_Betalingsregelingen]
 AS
 /* #########################################################################################################################################
@@ -164,9 +163,12 @@ SELECT DISTINCT BETR.Peildatum
        ,BETR.[Klantnr]
        ,Klantnaam = BETR.[Klant naam]
        ,BETR.Boekingsdatum
-			 ,BETR.Documentdatum
+	   ,BETR.Documentdatum
        ,BETR.Einddatum
        ,BETR.[Bedrag betalingsregeling] -- = SUM(BETR.[Bedrag betalingsregeling])
+	   ,BETR.[Aantal niet vervallen termijnen]
+	   ,BETR.[Bedrag niet vervallen termijnen]
+	   ,BETR.[Openstaand saldo betalingsregeling]
        ,BETR.Deurwaarderszaak
        ,BETR.Derdendossier
        ,BETR.Leefbaarheidsdossier

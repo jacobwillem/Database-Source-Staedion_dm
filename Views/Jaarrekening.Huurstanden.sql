@@ -4,6 +4,7 @@ SET ANSI_NULLS ON
 GO
 
 
+
 CREATE VIEW [Jaarrekening].[Huurstanden]
 AS
 WITH CTE_INTRZOR
@@ -19,6 +20,7 @@ SELECT [Peildatum]
 	,vw_Clusterlocatie.[Gemeente]
 	,[Exploitatiestatus] = [detailstatus]
 	,[Netto huur]
+	,[Prolongatietermijn]
 	,[Bedrijf]
 	,[Administratief eigenaar]
 	,[Juridisch eigenaar]

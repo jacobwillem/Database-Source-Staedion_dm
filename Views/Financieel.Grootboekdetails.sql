@@ -8,6 +8,7 @@ GO
 
 
 
+
 --USE [staedion_dm]
 --GO
 
@@ -30,7 +31,7 @@ select
   [Sleutel eenheid]                         = o.lt_id,
   [Rekeningnummer]                          = gla.No_,
   [Sleutel cluster]                         = cl.lt_id,
-  [Datum]                                   = convert(date,age.[Posting Date]),
+  [Datum]                                   = convert(date,gle.[Posting Date]),
   [Bedrag toegewezen]                       = case when [Realty Object No_] like '%co%' then age.Amount else age.[Allocated Amount] end,
   [Is DAEB]                                 = case when [administrative owner name] like '%Niet%' then 'Nee'
                                                    when [administrative owner name] = '' then null
