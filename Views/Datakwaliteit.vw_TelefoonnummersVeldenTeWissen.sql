@@ -3,13 +3,18 @@ GO
 SET ANSI_NULLS ON
 GO
 
-create view [Datakwaliteit].[vw_TelefoonnummersVeldenTeWissen] AS 
+
+CREATE VIEW [Datakwaliteit].[vw_TelefoonnummersVeldenTeWissen] AS 
 WITH cte_actieve_huurderset
 AS (
 	SELECT *
 	FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken
 	)
-SELECT CTE.Klantnr, CTE.Peildatum, CTE.Huishoudnr
+SELECT  CTE.Klantnr
+	,CTE.Peildatum
+	,CTE.Huishoudnr
+	,CTE.[Actief huurcontract]
+	,CTE.Laaddatum
 	,[Telefoon 3 (klantkaart)] = CUST.[Telefoon 3] --'"="'+CUST.[Telefoon 3]+'"'
 	,[Telefoon 3 (huishoudkaart)] = CONT.[Telefoon 3] --'"=""'+CONT.[Telefoon 3]+'"""'	
 	,[Telefoon 4 (klantkaart)] = CUST.[Telefoon 4] --'"=""'+CUST.[Telefoon 4]+'"""'
@@ -26,14 +31,14 @@ LEFT OUTER JOIN  empire_data.dbo.Contact AS CONT
 ON CTE.Huishoudnr = CONT.No_
 LEFT OUTER JOIN  empire_data.dbo.Contact_Role AS ROL
 ON CUST.[contact no_] = ROL.[Related Contact No_]
-and ROL.[Show first] = 1
-where CUST.[Telefoon 3] <> ''
-or CUST.[Telefoon 4] <> ''
-or CUST.[Telefoon 5] <> ''
-or CUST.[Telefoon overdag] <> ''
-or CONT.[Telefoon 3] <> ''
-or CONT.[Telefoon 4] <> ''
-or CONT.[Telefoon 5] <> ''
-or CONT.[Telefoon overdag] <> ''
+AND ROL.[Show first] = 1
+WHERE CUST.[Telefoon 3] <> ''
+OR CUST.[Telefoon 4] <> ''
+OR CUST.[Telefoon 5] <> ''
+OR CUST.[Telefoon overdag] <> ''
+OR CONT.[Telefoon 3] <> ''
+OR CONT.[Telefoon 4] <> ''
+OR CONT.[Telefoon 5] <> ''
+OR CONT.[Telefoon overdag] <> ''
 ;
 GO

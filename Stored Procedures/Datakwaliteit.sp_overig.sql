@@ -58,12 +58,14 @@ WIJZIGINGEN
 20210818 Versie 17 JvdW - aanpassing
 	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Attribuut = 'Afwijking in aanvangsdatum huurcontract'	 -- 3006
 20210929 Versie 18 JvdW - toevoeging
-	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 18 
-	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 19
-	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 20
-	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 21 
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211018', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 18 
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211018', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 19
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211018', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 20
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211018', @Entiteit = 'Relaties', @Attribuut = 'Telefoonnummer', @fk_indicatordimensie_id = 21 
 	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Registratie van overlijden', @fk_indicatordimensie_id = 19
-	
+20211020 Versie 19 JvdW - telefoonnr toevoegen zittende huurder/vertrokken + relatienr
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211102', @Entiteit = 'Relaties', @Attribuut = 'Correspondentietype'
+
 ------------------------------------------------------------------------------------------------------
 CHECKS                   
 ------------------------------------------------------------------------------------------------------
@@ -847,46 +849,36 @@ BEGIN TRY
 			if @Attribuut ='Correspondentietype'	 -- 6022
 			   begin
 
-					EXEC staedion_dm.[Datakwaliteit].[sp_genereer_set_actieve_huurders] -- verwijst naar [fn_HuurderFilter]
-					-- 38.828
-					;WITH cte_actieve_huurderset
-					AS (
-						SELECT *
-						FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken
-						)
-					SELECT CTE.*
-						,Correspondentietype = CASE CONT.[correspondence type]
-						WHEN 0 THEN 'Leeg'
-						WHEN 1 THEN 'Afdruk'
-						WHEN 2 THEN 'E-mail'
-						WHEN 3 THEN 'Fax' end
- 						,[Emailadressen] = [E-mail] + '|'+[E-mail 2] --+ '|'+[E-mail 3]+ '|'+[E-mail 4]+ '|'+[E-mail 5]
-						,[Fout emailadres Ja/Nee] = CASE WHEN CONT.[E-mail] <> '' AND staedion_dm.[Datakwaliteit].[fn_check_emailadres] (CONT.[E-mail])= 0 THEN 'Ja' 
-													ELSE CASE WHEN CONT.[E-mail 2] <> '' AND staedion_dm.[Datakwaliteit].[fn_check_emailadres] (CONT.[E-mail 2])= 0 THEN 'Ja' 
-													---ELSE CASE WHEN CONT.[E-mail 3] <> '' AND staedion_dm.[Datakwaliteit].[fn_check_emailadres] (CONT.[E-mail 3])= 0 THEN 'Ja' 
-													--ELSE CASE WHEN CONT.[E-mail 4] <> '' AND staedion_dm.[Datakwaliteit].[fn_check_emailadres] (CONT.[E-mail 4])= 0 THEN 'Ja' 
-													--ELSE CASE WHEN CONT.[E-mail 5] <> '' AND staedion_dm.[Datakwaliteit].[fn_check_emailadres] (CONT.[E-mail 5])= 0 THEN 'Ja' 
-														ELSE 'Nee' END END 			
-					INTO #Details6022
-					FROM cte_actieve_huurderset  AS CTE
-					LEFT OUTER JOIN  empire_data.dbo.Contact AS CONT 
-					ON CTE.Huishoudnr = CONT.No_
+			   		DELETE from [Datakwaliteit].[RealisatieDetails] where convert(date,Laaddatum) = convert(date,@Laaddatum) and fk_indicator_id = @fk_indicator_id 
 					;
-
-						begin
+					SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails verwijderd: ' + format(@@ROWCOUNT, 'N0');
+					EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht
+					;
+					delete from [Datakwaliteit].[Realisatie] where convert(date,Laaddatum) = convert(date,@Laaddatum) and fk_indicator_id = @fk_indicator_id
+					;
+					SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails verwijderd: ' + format(@@ROWCOUNT, 'N0');
+					EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht
+					;
+					EXEC staedion_dm.[Datakwaliteit].[sp_genereer_set_actieve_huurders] -- verwijst naar [fn_HuurderFilter]
+					;
+					SELECT @Noemer = count(distinct BASIS.klantnr)
+					FROM staedion_dm.[Datakwaliteit].[vw_Correspondentietype] AS BASIS 
+					;
+					-- 19 @fk_indicatordimensie_id = accuratesse
 							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
 								SELECT Omschrijving =  ' Klantnr = ' + BASIS.Klantnr  + 
-															' Huishoudnr = ' + BASIS.Huishoudnr +  
-															' Correspondentietype = ' + BASIS.Correspondentietype +  															
-															' Email(adressen) = ' + BASIS.[Emailadressen]    
+															' Correspondentietype = ' + BASIS.[Correspondentietype huishoudkaart] +  															
+															' Email(adressen) = "' + BASIS.[Email huishoudkaart] + '"; "' + BASIS.[Email 2 huishoudkaart]  + '"' +
+															' Recentste huurcontract = ' + FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy')														 
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
 											 ,19 -- @fk_indicatordimensie_id = accuratesse
-								from	#Details6022 AS BASIS
-								WHERE	Correspondentietype = 'E-mail' AND [Fout emailadres Ja/Nee] = 'Ja'
+								FROM staedion_dm.[Datakwaliteit].[vw_Correspondentietype] AS BASIS 
+								WHERE BASIS.klantnr IN (SELECT klantnr FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken WHERE [Actief huurcontract] = 1)
+								AND [BASIS].[Inaccurate email] = 1	
 								;
 								SET @AantalRecords = @@ROWCount
 								;
@@ -894,71 +886,68 @@ BEGIN TRY
 								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
 
 								insert into Datakwaliteit.Realisatie (Waarde, Teller, Noemer, Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
-								select @AantalRecords, @AantalRecords, (select count(*) from #Details6022), @Laaddatum , @fk_indicator_id, 19 -- @fk_indicatordimensie_id = accuratesse
+								select @AantalRecords, @AantalRecords,@Noemer, @Laaddatum , @fk_indicator_id, 19 -- @fk_indicatordimensie_id = accuratesse
 								;
-
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
-								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;													
-						END
-	
-						begin
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht
+								;	
+						-- 15 @fk_indicatordimensie_id = volledigheid		
 							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
 								SELECT Omschrijving =  ' Klantnr = ' + BASIS.Klantnr  + 
-															' Huishoudnr = ' + BASIS.Huishoudnr +  
-															' Correspondentietype = ' + BASIS.Correspondentietype +  															
-															' Email(adressen) = ' + BASIS.[Emailadressen]    
+															' Correspondentietype = ' + BASIS.[Correspondentietype huishoudkaart] +  															
+															' Email(adressen) = "' + BASIS.[Email huishoudkaart] + '"; "' + BASIS.[Email 2 huishoudkaart]  + '"' +
+															' Recentste huurcontract = ' + FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy')														 
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
-											 ,20 -- @fk_indicatordimensie_id = consistentie
-								from	#Details6022 AS BASIS
-								WHERE Correspondentietype = 'E-mail' AND [Emailadressen] = '|'
+											 ,15 -- @fk_indicatordimensie_id 
+								FROM staedion_dm.[Datakwaliteit].[vw_Correspondentietype] AS BASIS 
+								WHERE BASIS.klantnr IN (SELECT klantnr FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken WHERE [Actief huurcontract] = 1)
+								AND [BASIS].[Onvolledigheid correspondentietype] = 1
 								;
 								SET @AantalRecords = @@ROWCount
 								;
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
 								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
 
-								insert into Datakwaliteit.Realisatie (Waarde,  Teller, Noemer, Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
-								select @AantalRecords,@AantalRecords,(select count(*) from #Details6022), @Laaddatum , @fk_indicator_id, 20 -- @fk_indicatordimensie_id = consistentie
+								insert into Datakwaliteit.Realisatie (Waarde, Teller, Noemer, Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @AantalRecords,@Noemer, @Laaddatum , @fk_indicator_id, 15
 								;
-
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
-								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;													
-						END
-
-						begin
-							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Noemer,Klantnr,  Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht
+								;
+						-- 20 = @fk_indicatordimensie_id = consistentie		
+							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
 								SELECT Omschrijving =  ' Klantnr = ' + BASIS.Klantnr  + 
-															' Huishoudnr = ' + BASIS.Huishoudnr +  
-															' Correspondentietype = ' + BASIS.Correspondentietype +  															
-															' Email(adressen) = ' + BASIS.[Emailadressen]    
+															' Correspondentietype = ' + BASIS.[Correspondentietype huishoudkaart] +  															
+															' Email(adressen) = "' + BASIS.[Email huishoudkaart] + '"; "' + BASIS.[Email 2 huishoudkaart]  + '"' +
+															' Recentste huurcontract = ' + FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy')														 
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
-											 ,15 -- @fk_indicatordimensie_id = volledigheid
-								from	#Details6022 AS BASIS
-								WHERE Correspondentietype = 'Leeg'
+											 ,20 -- @fk_indicatordimensie_id 
+											 --select top 10 *
+								FROM staedion_dm.[Datakwaliteit].[vw_Correspondentietype] AS BASIS 
+								WHERE BASIS.klantnr IN (SELECT klantnr FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken WHERE [Actief huurcontract] = 1)
+								AND [BASIS].[Consistentie email] = 1
 								;
 								SET @AantalRecords = @@ROWCount
 								;
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
 								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
 
-								insert into Datakwaliteit.Realisatie (Waarde, teller, noemer, Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
-								select SUM(IIF(Correspondentietype = 'Leeg',1,0)),SUM(IIF(Correspondentietype = 'Leeg',1,0)), COUNT(*) 
-											,@Laaddatum , @fk_indicator_id, 15 -- @fk_indicatordimensie_id = volledigheid
-								from	#Details6022 AS BASIS
+								insert into Datakwaliteit.Realisatie (Waarde, Teller, Noemer, Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @AantalRecords,@Noemer, @Laaddatum , @fk_indicator_id, 20
 								;
-
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
-								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;													
-						END
-				 end
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht
+								;
+				END
+
 --------------------------------------------------------------------------------------------------------------
 			if @Attribuut ='Leegstandsregel ten onrechte niet verwijderd?'	 -- 3008
 
@@ -998,16 +987,18 @@ BEGIN TRY
 							--Check validiteit: Check: voldoen de volgende telefoonnummers (Telefoon + [Telefoon 2] aan vereiste schrijfwijze
 							--BRON: Datakwaliteit.vw_TelefoonnummersAfwijkendeSchrijfwijze
 							--18
-							INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+							INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id,Relatienr)
 								SELECT Omschrijving = ' Telefoon huishoudkaart = ' + BASIS.[Telefoon (huishoudkaart)] +  
 															' Telefoon 2 huishoudkaart = ' + BASIS.[Telefoon 2 (huishoudkaart)] +
-															' Klantnr = ' + BASIS.Klantnr 
+															' Klantnr = ' + BASIS.Klantnr  + coalesce(IIF(BASIS.[Actief huurcontract]=1,' (zittende huurder)', ' (vertrokken huurder)' ),'')
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
 											 ,@fk_indicatordimensie_id
+											 ,BASIS.Huishoudnr
+								-- select *
 								from		Datakwaliteit.vw_TelefoonnummersAfwijkendeSchrijfwijze as BASIS		
 								WHERE		@fk_indicatordimensie_id = 18
 								;
@@ -1027,18 +1018,19 @@ BEGIN TRY
 								--Check accuratesse: Leeg veld voor Telefoonnummer en Telefoonnummer overdag van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart), maar een of andere telefoonvelden wel gevuld
 								--BRON: Datakwaliteit.vw_TelefoonnummersVeldenNietGebruiken
 								--19
-								insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id,Relatienr)
 								SELECT Omschrijving =  ' Telefoon klantkaart = ' + BASIS.[Telefoon (klantkaart)] +  
 															' Telefoon overdag klantkaart = ' + BASIS.[Telefoon overdag (klantkaart)] +
 															' Telefoon mobiel klantkaart = ' + BASIS.[Mobiel (klantkaart)] +
-															' Klantnr = ' + BASIS.Klantnr 
+															' Klantnr = ' + BASIS.Klantnr + coalesce(IIF(BASIS.[Actief huurcontract]=1,' (zittende huurder)', ' (vertrokken huurder)' ),'')
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
 											 ,@fk_indicatordimensie_id
-								-- select top 10 *
+											 ,BASIS.Huishoudnr
+								-- select  *
 								from		Datakwaliteit.vw_TelefoonnummersVeldenNietGebruiken as BASIS
 								WHERE		@fk_indicatordimensie_id = 19				
 								;
@@ -1055,22 +1047,32 @@ BEGIN TRY
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
 								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
 
-								INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id,Relatienr)
 								--Check consistentie: Veld Telefoonnummer of [Telefoon overdag]  of [Telefoon 2] van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart) is verschilt van bijbehorende huishoudkaart
 								--BRON: Datakwaliteit.vw_TelefoonnummersKlantkaartHuishoudkaart
 								--20
-								SELECT Omschrijving =  ' Telefoon klantkaart = ' + BASIS.[Telefoon (klantkaart)] +  
-															' Telefoon huishoudkaart = ' + BASIS.[Telefoon (huishoudkaart)] +
-															' Telefoon 2 klantkaart = ' + BASIS.[Telefoon 2 (klantkaart)] +  
-															' Telefoon 2 huishoudkaart = ' + BASIS.[Telefoon 2 (huishoudkaart)] +
-															' Klantnr = ' + BASIS.Klantnr 
+								SELECT Omschrijving = ' Klantnr = ' + BASIS.Klantnr + ' - ' + 
+														+ CASE WHEN BASIS.[Telefoon (huishoudkaart)] <>  BASIS.[Telefoon (klantkaart)] 
+														THEN 	' Telefoon klantkaart = ' + COALESCE(NULLIF(BASIS.[Telefoon (klantkaart)],''),'(leeg)') +  
+															' Telefoon huishoudkaart = ' + COALESCE(NULLIF(BASIS.[Telefoon (huishoudkaart)],''),'(leeg)')  
+															ELSE 
+															CASE WHEN BASIS.[Telefoon 2 (klantkaart)] <>  BASIS.[Telefoon 2 (huishoudkaart)] 
+																THEN ' Telefoon 2 klantkaart = ' + COALESCE(NULLIF(BASIS.[Telefoon 2 (klantkaart)],''),'(leeg)') +    
+																		' Telefoon 2 huishoudkaart = ' + COALESCE(NULLIF(BASIS.[Telefoon 2 (huishoudkaart)],''),'(leeg)')  
+																ELSE 
+																	CASE WHEN BASIS.[Telefoon overdag (klantkaart)] <>  BASIS.[Telefoon overdag (huishoudkaart)] 
+																		THEN	' Telefoon overdag klantkaart = ' +  COALESCE(NULLIF(BASIS.[Telefoon overdag (klantkaart)],''),'(leeg)') +  
+																				' Telefoon overdag huishoudkaart = '  + COALESCE(NULLIF(BASIS.[Telefoon overdag (huishoudkaart)] ,''),'(leeg)')  
+																				END END END + coalesce(IIF(BASIS.[Actief huurcontract]=1,' (zittende huurder)', ' (vertrokken huurder)' ),'')
+															
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
 											 ,@fk_indicatordimensie_id
-								-- select top 10 *
+											 ,BASIS.Huishoudnr
+								-- select  *
 								from		Datakwaliteit.vw_TelefoonnummersKlantkaartHuishoudkaart as BASIS
 								WHERE		@fk_indicatordimensie_id = 20		
 								;
@@ -1087,7 +1089,7 @@ BEGIN TRY
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
 								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
 								
-								INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								INSERT into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id,Relatienr)
 								--Check overig: Tegen afspraak in zijn bepaalde telefoonvelden nog gevuld: Veld [Telefoon 3] + [Telefoon 4] + [Telefoon 5] + [Telefoon overdag] van de actieve hoofdhuurder (met Toon als eerste = Ja op de contractkaart) 
 								--BRON: Datakwaliteit.vw_TelefoonnummersVeldenTeWissen
 								--21
@@ -1096,12 +1098,14 @@ BEGIN TRY
 															' Telefoon 4 klantkaart = ' + BASIS.[Telefoon 4 (klantkaart)] +  
 															' Telefoon 5 klantkaart = ' + BASIS.[Telefoon 5 (klantkaart)]  +
 															' Klantnr = ' + BASIS.Klantnr  
+															+ coalesce(IIF(BASIS.[Actief huurcontract]=1,' (zittende huurder)', ' (vertrokken huurder)' ),'')
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
 											 ,@fk_indicatordimensie_id
+											 ,BASIS.Huishoudnr
 								-- select top 10 *
 								from		Datakwaliteit.vw_TelefoonnummersVeldenTeWissen as BASIS		
 								WHERE		@fk_indicatordimensie_id = 21									

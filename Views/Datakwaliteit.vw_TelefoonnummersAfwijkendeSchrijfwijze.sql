@@ -3,14 +3,19 @@ GO
 SET ANSI_NULLS ON
 GO
 
-create view [Datakwaliteit].[vw_TelefoonnummersAfwijkendeSchrijfwijze] 
+
+CREATE VIEW [Datakwaliteit].[vw_TelefoonnummersAfwijkendeSchrijfwijze] 
 AS 
 WITH cte_actieve_huurderset
 AS (
 	SELECT *
 	FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken
 	)
-SELECT CTE.*
+SELECT CTE.Klantnr
+	,CTE.Peildatum
+	,CTE.Huishoudnr
+	,CTE.[Actief huurcontract]
+	,CTE.Laaddatum
 	,[Telefoon (klantkaart)] = CUST.[Phone No_]
 	,[Telefoon (huishoudkaart)] = CONT.[Phone No_]	
 	,[Telefoon 2 (klantkaart)] = CUST.[Telefoon 2]

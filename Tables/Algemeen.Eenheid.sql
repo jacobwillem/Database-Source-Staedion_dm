@@ -82,6 +82,7 @@ CREATE TABLE [Algemeen].[Eenheid]
 [Huidig contract met reden huurverlaging] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [EAN Code Electriciteit] [nvarchar] (18) COLLATE Latin1_General_CI_AS NOT NULL,
 [EAN Code Gas] [nvarchar] (18) COLLATE Latin1_General_CI_AS NOT NULL,
+[EAN Code] [nvarchar] (18) COLLATE Latin1_General_CI_AS NULL,
 [Contactpersoon BOG] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
