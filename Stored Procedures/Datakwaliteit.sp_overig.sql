@@ -867,15 +867,16 @@ BEGIN TRY
 					-- 19 @fk_indicatordimensie_id = accuratesse
 							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
 								SELECT Omschrijving =  ' Klantnr = ' + BASIS.Klantnr  + 
-															' Correspondentietype = ' + BASIS.[Correspondentietype huishoudkaart] +  															
-															' Email(adressen) = "' + BASIS.[Email huishoudkaart] + '"; "' + BASIS.[Email 2 huishoudkaart]  + '"' +
-															' Recentste huurcontract = ' + FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy')														 
+															' Correspondentietype = ' + COALESCE(BASIS.[Correspondentietype huishoudkaart],'leeg') +  															
+															' Email(adressen) = "' + COALESCE(BASIS.[Email huishoudkaart],'') + '"; "' + COALESCE(BASIS.[Email 2 huishoudkaart],'')  + '"' +
+															' Recentste huurcontract = ' + COALESCE(FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy'),'?')														 
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
 											 ,@Laaddatum
 											 ,@fk_indicator_id
 											 ,19 -- @fk_indicatordimensie_id = accuratesse
+											 -- select *
 								FROM staedion_dm.[Datakwaliteit].[vw_Correspondentietype] AS BASIS 
 								WHERE BASIS.klantnr IN (SELECT klantnr FROM staedion_dm.Datakwaliteit.SetHuurdersTeChecken WHERE [Actief huurcontract] = 1)
 								AND [BASIS].[Inaccurate email] = 1	
@@ -894,9 +895,9 @@ BEGIN TRY
 						-- 15 @fk_indicatordimensie_id = volledigheid		
 							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
 								SELECT Omschrijving =  ' Klantnr = ' + BASIS.Klantnr  + 
-															' Correspondentietype = ' + BASIS.[Correspondentietype huishoudkaart] +  															
-															' Email(adressen) = "' + BASIS.[Email huishoudkaart] + '"; "' + BASIS.[Email 2 huishoudkaart]  + '"' +
-															' Recentste huurcontract = ' + FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy')														 
+															' Correspondentietype = ' + COALESCE(BASIS.[Correspondentietype huishoudkaart],'leeg') +  															
+															' Email(adressen) = "' + COALESCE(BASIS.[Email huishoudkaart],'') + '"; "' + COALESCE(BASIS.[Email 2 huishoudkaart],'')  + '"' +
+															' Recentste huurcontract = ' + COALESCE(FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy'),'?')														 
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr
@@ -921,9 +922,9 @@ BEGIN TRY
 						-- 20 = @fk_indicatordimensie_id = consistentie		
 							insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
 								SELECT Omschrijving =  ' Klantnr = ' + BASIS.Klantnr  + 
-															' Correspondentietype = ' + BASIS.[Correspondentietype huishoudkaart] +  															
-															' Email(adressen) = "' + BASIS.[Email huishoudkaart] + '"; "' + BASIS.[Email 2 huishoudkaart]  + '"' +
-															' Recentste huurcontract = ' + FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy')														 
+															' Correspondentietype = ' + COALESCE(BASIS.[Correspondentietype huishoudkaart],'leeg') +  															
+															' Email(adressen) = "' + COALESCE(BASIS.[Email huishoudkaart],'') + '"; "' + COALESCE(BASIS.[Email 2 huishoudkaart],'')  + '"' +
+															' Recentste huurcontract = ' + COALESCE(FORMAT(BASIS.[Recentste ingangsdatum huurcontract],'dd-MM-yyyy'),'?')													 
 											 ,1
 											 ,1
 											 ,BASIS.Klantnr

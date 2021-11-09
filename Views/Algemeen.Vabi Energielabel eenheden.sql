@@ -7,6 +7,7 @@ GO
 
 
 
+
 CREATE view [Algemeen].[Vabi Energielabel eenheden]
 as
 -- JvdW 20200501: dubbele regels bij sommige eenheden per maand
@@ -29,7 +30,9 @@ cte_vabi as(
   join (select distinct datum from empire_dwh.dbo.d_bestand d where datum between dateadd(mm,-24,getdate()) and EOMONTH(getdate())) d on
   d.datum between vab.date_from and vab.date_to
 --where day(dateadd(dd,1,d.datum)) = 1
-and deelvoorraad in ('Staedion', 'Atriensis - Extern', 'Breman - Extern') -- MV 20200507: Staedion aangevuld met Atriensis en Breman nav overleg Jerry Lindenhof 
+and deelvoorraad in ('Staedion', 'Staedion (nieuwbouw)', 'Atriensis - Extern', 'Atriensis - Extern (nieuwbouw)', 'Breman - Extern', 'Breman - Extern (nieuwbouw)')
+		-- MV 20200507: Staedion aangevuld met Atriensis en Breman nav overleg Jerry Lindenhof
+		-- MV 20211104: Nieuwbouw varianten toegevoegd nav overleg Jana Grambow & Geert-Hein Bolder
   ),
 cte_temp as(
 

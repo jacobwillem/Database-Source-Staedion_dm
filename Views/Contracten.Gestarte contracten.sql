@@ -6,21 +6,22 @@ GO
 
 
 
-CREATE view [Contracten].[Gestarte contracten]
-as
-select
+
+CREATE VIEW [Contracten].[Gestarte contracten]
+AS
+SELECT
   Datum                  = c.dt_ingang,
   [Sleutel contract]     = c.id,
   [Sleutel eenheid]      = c.fk_eenheid_id,
   [Sleutel klant]        = c.fk_klant_id,
   [Kalehuur op einde]    = hpr.kalehuur,
-  [Mutatiehuur op einde] = isnull(hpr.streefhuur_oud, hpr.markthuur),
+  [Mutatiehuur op einde] = ISNULL(hpr.streefhuur_oud, hpr.markthuur),
   [Kalehuur nieuw]       = c.kale_huur_bij_ingang
-from empire_dwh.dbo.contract as c
-inner join empire_dwh.dbo.eenheid as e on
+FROM empire_dwh.dbo.[contract] AS c
+INNER JOIN empire_dwh.dbo.eenheid AS e ON
   e.id = c.fk_eenheid_id
-left join empire_dwh.dbo.contract as vc on 
+LEFT JOIN empire_dwh.dbo.[contract] AS vc ON 
   vc.id = c.voorgaand_contract
-outer apply empire_staedion_data.[dbo].[ITVfnHuurprijs](e.bk_nr_, vc.dt_einde) as hpr
-where c.dt_ingang is not null
+OUTER APPLY empire_staedion_data.[dbo].[ITVfnHuurprijs](e.bk_nr_, vc.dt_einde) AS hpr
+WHERE c.dt_ingang IS NOT NULL
 GO

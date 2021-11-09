@@ -5,6 +5,9 @@ GO
 
 
 
+
+
+
 CREATE view [Financieel].[Grootboekposten]
 as
 select
@@ -15,9 +18,10 @@ select
   [Documentnummer]                          = gle.[document no_],
   [Werksoort]                               = ews.Omschrijving,
   [Projectnummer]                           = gle.[Empire Projectnr_],
-  [Projecttype]                             = gle.[Empire Projecttype]
-from empire_data..Staedion$G_L_Entry as gle
-left join empire_logic.dbo.lt_mg_g_l_account as gla on
+  [Projecttype]                             = gle.[Empire Projecttype],
+  [Clusternr]                               = gle.Clusternr_
+from empire_data.dbo.Staedion$G_L_Entry as gle
+join empire_logic.dbo.lt_mg_g_l_account as gla on
   gla.mg_bedrijf = 'Staedion' and
   gla.No_ = gle.[G_L Account No_]
 left join empire_data.dbo.[Staedion$Empire_Werksoort] ews on

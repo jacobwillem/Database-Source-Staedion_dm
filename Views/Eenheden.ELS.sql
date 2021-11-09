@@ -2,6 +2,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
+
+
 CREATE view [Eenheden].[ELS]
 as
 select
@@ -21,6 +23,7 @@ select
 [Huidige labelconditie]                              = els.[huidige labelconditie],
 [Datum uit exploitatie]                              = els.[datum_uit_exploitatie],
 [Omschrijving technischtype]                         = els.[omschrijving_technischtype],
+[Scootmobielstalling]                                = case when els.omschrijving_technischtype = 'Scootmobielstalling' then 'Scootmobielstalling' else 'Geen Scootmobielstalling' end,
 [Da staedion groep technischtype]                    = els.[da_staedion_groep_technischtype],
 [Corpodata type]                                     = els.[corpodata_type],
 [Buurt]                                              = els.[buurt],
@@ -146,7 +149,11 @@ select
 [Adres]                                              = els.[Adres]
 FROM [empire_staedion_data].[dbo].[ELS] as els
 where datum_gegenereerd >= '20200101' 
-and (DAY(dateadd(dd,1,datum_gegenereerd)) = 1  or datum_gegenereerd = (select MAX(datum_gegenereerd) FROM [empire_staedion_data].[dbo].[ELS]))
+and (
+  DAY(dateadd(dd,1,datum_gegenereerd)) = 1  or 
+  datum_gegenereerd = (select MAX(datum_gegenereerd) FROM [empire_staedion_data].[dbo].[ELS]) or
+  (DAY(datum_gegenereerd) = 1 and MONTH(datum_gegenereerd) in (1,7))
+)
 
 
 GO

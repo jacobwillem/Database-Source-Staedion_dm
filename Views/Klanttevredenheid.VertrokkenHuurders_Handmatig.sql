@@ -11,7 +11,8 @@ GO
 
 
 
-CREATE view [Klanttevredenheid].[VertrokkenHuurders_Handmatig] as
+
+CREATE VIEW [Klanttevredenheid].[VertrokkenHuurders_Handmatig] AS
 /* #########################################################################################
 -- info
 EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klanttevredenheid', 'VertrokkenHuurders'
@@ -97,8 +98,8 @@ EXEC sys.sp_addextendedproperty
 ;  
 ######################################################################################### */    
 SELECT
-  [Datum]                           = convert(date,kcm.[INGEVULDE GEGEVENS]),
-  [Tijdstip]												= convert(time,kcm.[INGEVULDE GEGEVENS]),
+  [Datum]                           = CONVERT(DATE,kcm.[INGEVULDE GEGEVENS]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[INGEVULDE GEGEVENS]),
   [Postcode]												= kcm.postcode,
   [Sleutel eenheid]                 = oge.lt_id,
   [Eenheidnr]												= kcm.eenheidnr,
@@ -106,20 +107,22 @@ SELECT
 	[Verhuurcluster]									= kcm.verhuurcluster,
 	[clusternr]											= kcm.clusternr,
   [Score]														= kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion]
+  ,[kcm].[Werknemercode behandelend medewerker]
+  ,Ketenpartner = kcm.[Naam behandelend medewerker Staedion]
 -- select * 
-FROM empire_Staedion_Data.kcm.STN410_Ingevulde_gegevens as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+FROM empire_Staedion_Data.kcm.STN410_Ingevulde_gegevens AS kcm
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
 
-union
+UNION
 
 SELECT
-  [Datum]                           = convert(date,kcm.[INGEVULDE GEGEVENS]),
-  [Tijdstip]												= convert(time,kcm.[INGEVULDE GEGEVENS]),
+  [Datum]                           = CONVERT(DATE,kcm.[INGEVULDE GEGEVENS]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[INGEVULDE GEGEVENS]),
   [Postcode]												= kcm.postcode,
   [Sleutel eenheid]                 = oge.lt_id,
   [Eenheidnr]												= kcm.eenheidnr,
@@ -127,13 +130,15 @@ SELECT
 	[Verhuurcluster]									= kcm.verhuurcluster,
 	[clusternr]											= kcm.clusternr,
   [Score]														= kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion]
+  ,[kcm].[Werknemercode behandelend medewerker]
+  ,Ketenpartner = kcm.[Naam behandelend medewerker Staedion]
 -- select * 
-FROM empire_Staedion_Data.kcm.STN410_Ingevulde_gegevens_2019 as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+FROM empire_Staedion_Data.kcm.STN410_Ingevulde_gegevens_2019 AS kcm
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
 
 GO

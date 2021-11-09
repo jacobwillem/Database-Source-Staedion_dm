@@ -10,20 +10,26 @@ GO
 
 
 
-CREATE  view [Datakwaliteit].[vw_RealisatieDetails]
+
+
+
+
+CREATE  VIEW [Datakwaliteit].[vw_RealisatieDetails]
 AS
 -- JvdW 30-12-2020 Geen ; maar - ivm output naar csv
 SELECT	I.id_samengesteld
 		,R.id
-		,[Sleutel entiteit] = case I_parent.[Omschrijving]
-									when 'Eenheid' then R.[Eenheidnr]
-									when 'Klant' then R.[Klantnr]
-									when 'Relaties' then right(R.[Omschrijving], 12)
+		,[Sleutel entiteit] = CASE I_parent.[Omschrijving]
+									WHEN 'Eenheid' THEN R.[Eenheidnr]
+									WHEN 'Klant' THEN R.[Klantnr]
+									-- JvdW 20211020 R.Relatienr toegevoegd
+									-- JvdW 2021103 R.[Klantnr] toegevoegd
+									WHEN 'Relaties' THEN COALESCE(R.Relatienr, R.[Klantnr],RIGHT(R.[Omschrijving], 12))
 									--when 'Contracten' then coalesce(R.Eenheidnr,'OGEH-?') + '-' +  coalesce(R.Klantnr,'KLNT-?') + '-' + coalesce(convert(nvarchar(20), R.datIngang, 105),'ingangsdatum ?')
-									when 'Contracten' then coalesce(nullif(R.[Eenheidnr],''),'OGEH-?') + '-' +  coalesce(nullif(R.[Klantnr],''),'KLNT-?')
-									when 'Medewerker' then R.[fk_medewerker_id]
-									else 'Volgt - zie vw_RealisatieDetails'
-								end
+									WHEN 'Contracten' THEN COALESCE(NULLIF(R.[Eenheidnr],''),'OGEH-?') + '-' +  COALESCE(NULLIF(R.[Klantnr],''),'KLNT-?')
+									WHEN 'Medewerker' THEN R.[fk_medewerker_id]
+									ELSE 'Volgt - zie vw_RealisatieDetails'
+								END
 	   ,Entiteit = I_parent.Omschrijving
        ,Attribuut = I.Omschrijving
        ,[Controle onderwerp] = DIM.Vertaling
@@ -36,12 +42,14 @@ SELECT	I.id_samengesteld
 	   ,R.datIngang
 	   ,R.datEinde
 	   ,Aantal = 1
-	   ,Hyperlink = case when I.Omschrijving = 'bouwjaar' 
-							then empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.=''' + R.Eenheidnr + '''', 'view')
-							else R.Hyperlink end
+	   ,Hyperlink = CASE WHEN I.Omschrijving = 'bouwjaar' 
+							THEN empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.=''' + R.Eenheidnr + '''', 'view')
+							ELSE R.Hyperlink END
 	   ,R.Omschrijving
+	   ,R.Bevinding
 --       ,[Ontbrekend] = R.Noemer - R.Teller
 --       ,I.Procedure_completeness
+-- select top 10 *
 FROM Datakwaliteit.RealisatieDetails AS R
 JOIN Datakwaliteit.[Indicator] AS I
        ON I.id_samengesteld = R.id_samengesteld
@@ -50,19 +58,20 @@ JOIN Datakwaliteit.[Indicator] AS I_parent
 JOIN [staedion_dm].[Datakwaliteit].Indicatordimensie AS DIM
        ON DIM.id = R.fk_indicatordimensie_id
 LEFT JOIN [Datakwaliteit].[Uitzondering] AS UIT
-		ON UIT.[sleutel_entiteit] = case I_parent.[Omschrijving]
-											when 'Eenheid' then R.[Eenheidnr]
-											when 'Klant' then R.[Klantnr]
-											when 'Relaties' then right(R.[Omschrijving], 12)
+		ON UIT.[sleutel_entiteit] = CASE I_parent.[Omschrijving]
+											WHEN 'Eenheid' THEN R.[Eenheidnr]
+											WHEN 'Klant' THEN R.[Klantnr]
+											-- 20211020 JvdW R.huishoudnr toegevoegd
+											WHEN 'Relaties' THEN COALESCE(R.Relatienr, RIGHT(R.[Omschrijving], 12))
 											--when 'Contracten' then coalesce(R.Eenheidnr,'OGEH-?') + '-' +  coalesce(R.Klantnr,'KLNT-?') + '-' + coalesce(convert(nvarchar(20), R.datIngang, 105),'ingangsdatum ?')
-											when 'Contracten' then coalesce(nullif(R.[Eenheidnr],''),'OGEH-?') + '-' +  coalesce(nullif(R.[Klantnr],''),'KLNT-?')
-											when 'Medewerker' then R.[fk_medewerker_id]
-											else 'Volgt - zie vw_RealisatieDetails'
-										end
+											WHEN 'Contracten' THEN COALESCE(NULLIF(R.[Eenheidnr],''),'OGEH-?') + '-' +  COALESCE(NULLIF(R.[Klantnr],''),'KLNT-?')
+											WHEN 'Medewerker' THEN R.[fk_medewerker_id]
+											ELSE 'Volgt - zie vw_RealisatieDetails'
+										END
 		AND UIT.[id_samengesteld] = I.[id_samengesteld]
-		AND getdate() between UIT.[Startdatum] and coalesce(dateadd(day, 1, UIT.[Einddatum]), dateadd(day, 1, getdate()))
+		AND GETDATE() BETWEEN UIT.[Startdatum] AND COALESCE(DATEADD(DAY, 1, UIT.[Einddatum]), DATEADD(DAY, 1, GETDATE()))
 WHERE I.[Zichtbaar] = 1
-and UIT.[id] is null
-and R.Laaddatum = (SELECT MAX(Laaddatum) FROM Datakwaliteit.RealisatieDetails where Laaddatum <=getdate() )  -- per abuis kwam 1-7 lopend jaar ook voor ?!
+AND UIT.[id] IS NULL
+AND R.Laaddatum = (SELECT MAX(Laaddatum) FROM Datakwaliteit.RealisatieDetails WHERE Laaddatum <=GETDATE() )  -- per abuis kwam 1-7 lopend jaar ook voor ?!
 --and I.omschrijving like '%bouwjaar%'
 GO

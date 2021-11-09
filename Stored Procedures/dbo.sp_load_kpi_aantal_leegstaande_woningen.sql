@@ -35,6 +35,7 @@ WIJZIGINGEN
 ----------------------------------------------------------------------------------------------------------------
 20210817 MV: [Laaddatum] gevuld met getdate() ipv Peildatum
 20210713 JvdW: Toegevoegd in overleg met Martijn
+20211013 JvdW: wissen ging niet goed - moet obv DETAILS.datum en niet DETAILS.Laaddatum
 
 ################################################################################################################# */
 BEGIN TRY
@@ -57,7 +58,7 @@ BEGIN TRY
 		begin 		
 			delete 
 			from	Dashboard.[RealisatieDetails] where fk_indicator_id = @fk_indicator_id 
-			and		[Laaddatum] in (select datum from empire_Dwh.dbo.tijd 
+			and		datum in (select datum from empire_Dwh.dbo.tijd 
 										where isoweeknum = (select isoweeknum from empire_Dwh.dbo.tijd where datum = @Peildatum)
 										)
 			-- JvdW 20210201

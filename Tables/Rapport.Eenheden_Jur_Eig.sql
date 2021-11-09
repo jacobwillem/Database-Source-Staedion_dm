@@ -20,9 +20,9 @@ CREATE TABLE [Rapport].[Eenheden_Jur_Eig]
 [Saldo_Buiten_Periode] [decimal] (12, 2) NULL,
 [Aanvullende opmerking 1] [nvarchar] (40) COLLATE Latin1_General_CI_AS NULL,
 [Classificatie] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
-[Opmerking] [varchar] (25) COLLATE Latin1_General_CI_AS NULL,
 [Eigenaar] [varchar] (16) COLLATE Latin1_General_CI_AS NULL,
-[Betreft] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
+[Betreft] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[Opmerking] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [i_Eenheden_Jur_Eig] ON [Rapport].[Eenheden_Jur_Eig] ([eenheidnr]) ON [PRIMARY]

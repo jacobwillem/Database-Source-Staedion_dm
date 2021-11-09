@@ -5,6 +5,7 @@ GO
 
 
 
+
 CREATE VIEW [Leegstand].[Leegstandsgeval]
 AS
 /* ##############################################################################################################
@@ -27,7 +28,7 @@ SELECT
   [Derving netto]                   = dl.dervingnetto,
   [Derving bruto]                   = dl.dervingbruto,
   [Derving kale]                    = dl.dervingkale,
-  [Heeft leegstand ultimo maand]    = CASE WHEN ISNULL(dl.dt_einde,'99991231') >= dl.datum THEN 'Ja' ELSE 'Nee' END,
+  [Heeft leegstand ultimo maand]    = CASE WHEN ISNULL(dl.dt_einde_reden,'99991231') >= dl.datum THEN 'Ja' ELSE 'Nee' END,
   [Heeft momenteel leegstand]       = CASE WHEN ISNULL(dl.dt_einde,'99991231') >= GETDATE() THEN 'Ja' ELSE 'Nee' END,
   [Dagen leegstand vanaf ingang]    = DATEDIFF(dd,dl.dt_ingang, ISNULL(dl.dt_einde,GETDATE())),
   -- JvdW 20211011 toegevoegd

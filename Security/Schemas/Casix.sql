@@ -1,0 +1,3 @@
+CREATE SCHEMA [Casix]
+AUTHORIZATION [dbo]
+GO

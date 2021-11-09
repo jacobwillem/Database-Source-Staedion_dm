@@ -2,6 +2,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
+
 CREATE VIEW [Datakwaliteit].[vw_Indicator]
 AS
 /* ###############################################################################################################
@@ -104,7 +105,7 @@ AS (
 		FROM Datakwaliteit.RealisatieDetails AS R1
 		WHERE  R1.Laaddatum = (
 				SELECT max(R2.[Laaddatum])
-				FROM Datakwaliteit.RealisatieDetails AS R2
+				FROM Datakwaliteit.Realisatie AS R2
 				WHERE R2.[id_samengesteld] = R1.[id_samengesteld] 
 				)
 		group by R1.[id_samengesteld]

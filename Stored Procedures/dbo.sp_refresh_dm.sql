@@ -120,15 +120,6 @@ begin
 		Declare @Starttijd datetime;
 		Set @Starttijd = getdate();
 		Declare @Eindtijd datetime;
-
-	exec dbo.sp_load_kpi					-- jaarplan dashboard					
-
-		print OBJECT_NAME(@@PROCID)
-
-		Set @Eindtijd = getdate();	
-		Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
-		values ('staedion_dm.dbo.dbo.sp_load_kpi',@Starttijd, @Eindtijd, getdate());
-		Set @Starttijd = getdate();
 	
 	exec dbo.sp_load_algemeen_eenheid					-- Updaten: staedion_dm.algemeen.eenheid - Tbv oa PBI Vastgoed O&V 
 
@@ -152,6 +143,15 @@ begin
 		Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
 		values ('staedion_dm.dbo.dbo.sp_load_algemeen_mutatiehuur',@Starttijd, @Eindtijd, getdate());
 
+	exec dbo.sp_load_kpi					-- jaarplan dashboard					
+
+		print OBJECT_NAME(@@PROCID)
+
+		Set @Eindtijd = getdate();	
+		Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
+		values ('staedion_dm.dbo.dbo.sp_load_kpi',@Starttijd, @Eindtijd, getdate());
+		Set @Starttijd = getdate();
+
 	-- JvdW 31-08-2021 toegevoegd
 	exec staedion_dm.[dbo].[dsp_load_dashboard_diverse] -- Tbv oa PBI Staedion dashboard (views werden te langzaam)
 
@@ -159,6 +159,12 @@ begin
 		Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
 		values ('staedion_dm.dbo.dbo.dsp_load_dashboard_diverse',@Starttijd, @Eindtijd, getdate());
 
+    	-- rst 05-11-2021 toegevoegd
+		Set @Starttijd = getdate();
+	  exec staedion_dm.[dbo].[sp_update_business_keys_in_realisatiedetails] 
+		Set @Eindtijd = getdate();	
+		Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
+		values ('staedion_dm.dbo.dbo.sp_update_business_keys_in_realisatiedetails',@Starttijd, @Eindtijd, getdate());
 
 	
 end

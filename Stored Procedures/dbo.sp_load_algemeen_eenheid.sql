@@ -364,10 +364,11 @@ select
                                         when tar.description like 'D%' then 4
                                         else 5
                                       end,
-   [Voorheen Vestia] = CONVERT(NVARCHAR(10),NULL)	,												-- JvdW 12-03-2021
+   [Voorheen Vestia] = CONVERT(NVARCHAR(10),NULL)	,															-- JvdW 12-03-2021
    [Huidig contract met reden huurverlaging] = CONVERT(NVARCHAR(20),NULL),							-- JvdW 12-03-2021
-	 [EAN Code Electriciteit] = o.[EAN Code Electricity],											-- JvdW 23-06-2021
-   o.[EAN Code Gas],																				-- JvdW 23-06-2021
+	 [EAN Code Electriciteit] = o.[EAN Code Electricity],												-- JvdW 23-06-2021
+   o.[EAN Code Gas],																												-- JvdW 23-06-2021
+	 [EAN Code] = coalesce(nullif(o.[EAN Code Gas],''),nullif(o.[EAN Code Electricity],'')), -- JvdW 12-10-2021
    [Contactpersoon BOG] = convert(nvarchar(100),null)														-- JvdW 14-07-2021
 into Algemeen.Eenheid
 from empire_data.dbo.vw_lt_mg_oge as o

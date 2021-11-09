@@ -7,6 +7,8 @@ GO
 
 
 
+
+
 CREATE VIEW [Datakwaliteit].[vw_Correspondentietype] AS
 /* ##############################################################################################################################
 --------------------------------------------------------------------------------------------------------------------------
@@ -42,11 +44,12 @@ WITH cte_Additioneel AS
 
 	SELECT [Klantnr] = AD.[Customer No_], AD.Ingangsdatum, Volgnr = ROW_NUMBER() OVER (PARTITION BY AD.[Customer No_] ORDER BY AD.Ingangsdatum DESC) 
 		FROM empire_data.dbo.[Staedion$Additioneel] AS AD
-		WHERE NULLIF(AD.[Einddatum],'20990101') >= GETDATE()
+		WHERE COALESCE( NULLIF(AD.[Einddatum],'17530101'), '20990101') >= GETDATE()
 	)
 
 
 SELECT [Klantnr] = C.No_,
+		Klantboekingsgroep = C.[Customer Posting Group],
        Huishoudkaartnr = H.No_,
        [Klantnaam] = C.[Name],
        CASE H.[Correspondence Type]
@@ -73,7 +76,8 @@ SELECT [Klantnr] = C.No_,
 					--										--ELSE CASE WHEN CONT.[E-mail 5] <> '' AND staedion_dm.[Datakwaliteit].[fn_check_emailadres] (CONT.[E-mail 5])= 0 THEN 'Ja' 
 					--											ELSE 'Nee' END END 			
 -- select H.[Correspondence Type],count(*)
-FROM empire_data.dbo.customer AS C
+-- select *
+FROM empire_data.dbo.customer AS C 
     JOIN empire_data.dbo.contact AS H
         ON C.[Contact No_] = H.No_
 		   LEFT OUTER JOIN cte_Additioneel AS CTE ON CTE.Klantnr = C.No_ AND CTE.volgnr = 1
