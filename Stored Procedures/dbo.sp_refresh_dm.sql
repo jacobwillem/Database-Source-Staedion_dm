@@ -23,7 +23,7 @@ output van load kpi
 	exec [sp_load_kpi_automatische_incasso] '2021-02-28'
 	exec [sp_load_kpi_automatische_incasso] '2021-03-31'
 	exec [sp_load_kpi_huurachterstand] '2021-02-28'
-	exec [sp_load_kpi_huurachterstand] '2021-03-31'
+	exec [sp_load_kpi_huurachterstand] '2021-03-31'[dbo].[sp_load_kpi_zelfst_DAEB_eenheden]
 	exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-02-28'
 	exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-03-31'
 	exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-04-29'
@@ -152,12 +152,13 @@ begin
 		values ('staedion_dm.dbo.dbo.sp_load_kpi',@Starttijd, @Eindtijd, getdate());
 		Set @Starttijd = getdate();
 
-	-- JvdW 31-08-2021 toegevoegd
-	exec staedion_dm.[dbo].[dsp_load_dashboard_diverse] -- Tbv oa PBI Staedion dashboard (views werden te langzaam)
+	-- JvdW 31-08-2021 toegevoegd, update staedion_dm.Dashboard.RealisatiePrognose + staedion_dm.[Dashboard].[DimensieJoin]
+	-- JvdW 11-11-2021 uitgecommentarieerd, opzet is gewijzigd, niet mee van belang 
+	--exec staedion_dm.[dbo].[dsp_load_dashboard_diverse] -- Tbv oa PBI Staedion dashboard (views werden te langzaam)
 
-		Set @Eindtijd = getdate();	
-		Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
-		values ('staedion_dm.dbo.dbo.dsp_load_dashboard_diverse',@Starttijd, @Eindtijd, getdate());
+	--	Set @Eindtijd = getdate();	
+	--	Insert into empire_staedion_Data.etl.LogboekMeldingenProcedures (DatabaseObject, Begintijd, Eindtijd, TijdMelding)
+	--	values ('staedion_dm.dbo.dbo.dsp_load_dashboard_diverse',@Starttijd, @Eindtijd, getdate());
 
     	-- rst 05-11-2021 toegevoegd
 		Set @Starttijd = getdate();

@@ -26,7 +26,8 @@ CREATE TABLE [Sharepoint].[AantallenStartBouwOplevering]
 [TijdstipGenereren] [datetime] NULL,
 [Peildatum] [date] NULL,
 [Gemaakt] [datetimeoffset] NULL,
-[Gewijzigd] [datetimeoffset] NULL
+[Gewijzigd] [datetimeoffset] NULL,
+[FT-cluster] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Sharepoint].[AantallenStartBouwOplevering] ADD CONSTRAINT [PK_AantallenStartBouwOplevering] PRIMARY KEY CLUSTERED ([Id]) ON [PRIMARY]

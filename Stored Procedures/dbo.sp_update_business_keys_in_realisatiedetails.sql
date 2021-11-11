@@ -7,7 +7,11 @@ as
 begin
 
   -- update de bk's obv de fk's (dit om niet meer afhankelijk te zijn van dwh).
-  SET ANSI_WARNINGS OFF
+  -- JvdW 20211111 uitgezet, vanwege foutmelding 
+  -- UPDATE failed because the following SET options have incorrect settings: 'ANSI_WARNINGS'. 
+  -- Verify that SET options are correct for use with indexed views and/or indexes on computed columns and/or filtered indexes and/or query notifications and/or XML data type methods and/or spatial index operations.
+
+  -- SET ANSI_WARNINGS OFF
 
   update rd
     set 
@@ -49,7 +53,7 @@ begin
 		from [Dashboard].[RealisatieDetails] as rd
 		where rd.bk_clusternummer is null
 
-  SET ANSI_WARNINGS ON
+  --SET ANSI_WARNINGS ON
 
 end
 GO

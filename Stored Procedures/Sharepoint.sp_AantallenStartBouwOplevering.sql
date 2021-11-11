@@ -11,10 +11,19 @@ BETREFT: Is bedoeld om in een Power Automate Flow data van Microsoft List over t
 => referentiedata haal je zo binnen om te kunnen gebruiken in opbouwen van kpi's bijvoorbeeld
 
 20211001 JvdW aangemaakt
+20211109 JvdW na overleg met Youness
+				-- voor maandagavond 2de week van de maand: dan peildatum vorige maand
+					select datename(weekday, getdate()), datepart(day, datediff(day, 0, getdate())/7 * 7)/7 + 1, format(getdate(),'ddd', 'nl-NL')
+				-- na maandagavond 2de week van de maand: dan peildatum huidige maand
+
 ----------------------------------------------------------------------------------------------------------------------------------
 TEST
 ----------------------------------------------------------------------------------------------------------------------------------
-exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] 
+exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211109'
+exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211108'
+exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211101'
+exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211130'
+
 select * from staedion_dm.DatabaseBeheer.LoggingUitvoeringDatabaseObjecten
 ----------------------------------------------------------------------------------------------------------------------------------
 AANTEKENINGEN
@@ -34,8 +43,21 @@ AS
 BEGIN
 	DECLARE @Bericht NVARCHAR(50)
 
-	IF @Peildatum IS NULL 
-		SET @Peildatum = GETDATE()
+	-- oude code
+	-- IF @Peildatum IS NULL 
+	--	SET @Peildatum = GETDATE()
+	Declare @Vandaag as date
+	Declare @WeeknrBinnenHuidigeMaand as smallint
+	Declare @HuidigeDag as nvarchar(10)
+
+	Set @Vandaag = coalesce(@Peildatum,getdate())
+	Set @WeeknrBinnenHuidigeMaand = datepart(day, datediff(day, 0, @Vandaag)/7 * 7)/7 + 1    -- https://stackoverflow.com/questions/13116222/how-to-get-week-number-of-the-month-from-the-date-in-sql-server-2008
+	Set @HuidigeDag = format(@Vandaag,'ddd', 'nl-NL')
+	
+	If @WeeknrBinnenHuidigeMaand = 1 or (@WeeknrBinnenHuidigeMaand = 2 and @HuidigeDag in ( 'zo','ma'))
+				set @Peildatum = eomonth(dateadd(m,-1,@Vandaag))
+	If @WeeknrBinnenHuidigeMaand > 2 or (@WeeknrBinnenHuidigeMaand = 2 and @HuidigeDag not in ( 'zo','ma'))
+			set @Peildatum = eomonth(@Vandaag)
 
 	DROP TABLE IF EXISTS bak.AantallenStartBouwOplevering
 	;

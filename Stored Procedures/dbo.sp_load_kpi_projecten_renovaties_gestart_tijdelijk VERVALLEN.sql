@@ -4,7 +4,7 @@ SET ANSI_NULLS ON
 GO
 
 
-CREATE procedure [dbo].[sp_load_kpi_projecten_renovaties_gestart_tijdelijk](
+CREATE procedure [dbo].[sp_load_kpi_projecten_renovaties_gestart_tijdelijk VERVALLEN](
   @peildatum date = '20191231'
 )
 as

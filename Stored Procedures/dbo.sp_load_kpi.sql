@@ -6,141 +6,63 @@ GO
 CREATE procedure [dbo].[sp_load_kpi]
 as
 /* ###############################################################################################################################
-20210913 JvdW Welke statements worden uitgevoerd ?
-exec [sp_load_kpi_huurderving] '2021-07-31'
-exec [sp_load_kpi_huurderving] '2021-08-31'
-exec [sp_load_kpi_huurderving] '2021-09-13'
-exec [sp_load_kpi_cashflow] '2021-07-31'
-exec [sp_load_kpi_cashflow] '2021-08-31'
-exec [sp_load_kpi_cashflow] '2021-09-13'
-exec [sp_load_kpi_debiteuren] '2021-07-31', @fk_indicator_id = 2629
-exec [sp_load_kpi_debiteuren] '2021-08-31', @fk_indicator_id = 2629
-exec [sp_load_kpi_debiteuren] '2021-09-13', @fk_indicator_id = 2629
-exec [sp_load_kpi_debiteuren] '2021-07-31', @fk_indicator_id = 2626
-exec [sp_load_kpi_debiteuren] '2021-08-31', @fk_indicator_id = 2626
-exec [sp_load_kpi_debiteuren] '2021-09-13', @fk_indicator_id = 2626
-exec [sp_load_kpi_debiteuren] '2021-07-31', @fk_indicator_id = 2620
-exec [sp_load_kpi_debiteuren] '2021-08-31', @fk_indicator_id = 2620
-exec [sp_load_kpi_debiteuren] '2021-09-13', @fk_indicator_id = 2620
-exec [sp_load_kpi_crediteuren] '2021-07-31', @fk_indicator_id = 2619
-exec [sp_load_kpi_crediteuren] '2021-08-31', @fk_indicator_id = 2619
-exec [sp_load_kpi_crediteuren] '2021-09-13', @fk_indicator_id = 2619
-exec [sp_load_kpi_crediteuren] '2021-07-31', @fk_indicator_id = 2616
-exec [sp_load_kpi_crediteuren] '2021-08-31', @fk_indicator_id = 2616
-exec [sp_load_kpi_crediteuren] '2021-09-13', @fk_indicator_id = 2616
-exec [sp_load_kpi_crediteuren] '2021-07-31', @fk_indicator_id = 2610
-exec [sp_load_kpi_crediteuren] '2021-08-31', @fk_indicator_id = 2610
-exec [sp_load_kpi_crediteuren] '2021-09-13', @fk_indicator_id = 2610
-exec [sp_load_kpi_fte] '2021-07-31'
-exec [sp_load_kpi_fte] '2021-08-31'
-exec [sp_load_kpi_bedrijfslasten] '2021-07-31'
-exec [sp_load_kpi_bedrijfslasten] '2021-08-31'
-exec [sp_load_kpi_bedrijfslasten] '2021-09-13'
-exec [sp_load_kpi_automatische_incasso] '2021-07-31'
-exec [sp_load_kpi_automatische_incasso] '2021-08-31'
-exec [sp_load_kpi_huurachterstand] '2021-07-31'
-exec [sp_load_kpi_huurachterstand] '2021-08-31'
-exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-07-31'
-exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-08-31'
-exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-09-13'
-exec [sp_load_kpi_huurachterstand_betalingsregelingen] '2021-07-31'
-exec [sp_load_kpi_huurachterstand_betalingsregelingen] '2021-08-31'
-exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-07-31', @eenzijdig_wijk=nee
-exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-08-31', @eenzijdig_wijk=nee
-exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-09-13', @eenzijdig_wijk=nee
-exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-07-31', @eenzijdig_wijk=ja
-exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-08-31', @eenzijdig_wijk=ja
-exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-09-13', @eenzijdig_wijk=ja
-exec [sp_load_kpi_kcm_overige_processen] '2021-07-31'
-exec [sp_load_kpi_kcm_overige_processen] '2021-08-31'
-exec [sp_load_kpi_aantal_klachten_handmatig] '2021-07-31'
-exec [sp_load_kpi_aantal_klachten_handmatig] '2021-08-31'
-exec [sp_load_kpi_aantal_klachten_handmatig] '2021-09-13'
-exec [sp_load_kpi_kcm_klacht] '2021-07-31'
-exec [sp_load_kpi_kcm_klacht] '2021-08-31'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2021-07-31', '%derden%EKG%', 'Extern'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2021-08-31', '%derden%EKG%', 'Extern'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-07-31', '%derden%tevredenh%', 'Extern'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-08-31', '%derden%tevredenh%', 'Extern'
-exec [sp_load_kpi_npo_doorlooptijd] '2021-07-31'
-exec [sp_load_kpi_npo_doorlooptijd] '2021-08-31'
-exec [sp_load_kpi_npo_doorlooptijd] '2021-09-13'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2021-07-31', '%eigen%dienst%EKG%', 'Eigen dienst'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2021-08-31', '%eigen%dienst%EKG%', 'Eigen dienst'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-07-31', '%eigen%dienst%tevredenh%', 'Eigen dienst'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-08-31', '%eigen%dienst%tevredenh%', 'Eigen dienst'
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-07-31', '%tevred%reparatieverzoek%', ''
-exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-08-31', '%tevred%reparatieverzoek%', ''
-exec [sp_load_kpi_kcm_nieuwe_huurder_handmatig] '2021-07-31'
-exec [sp_load_kpi_kcm_nieuwe_huurder_handmatig] '2021-08-31'
-exec [sp_load_kpi_kcm_vertrokken_huurder] '2021-07-31'
-exec [sp_load_kpi_kcm_vertrokken_huurder] '2021-08-31'
-exec [sp_load_kpi_kcm_thuisgevoel_in_woonomgeving_handmatig] '2021-07-31'
-exec [sp_load_kpi_kcm_thuisgevoel_in_woonomgeving_handmatig] '2021-08-31'
-exec [sp_load_kpi_kcm_thuisgevoel_handmatig] '2021-07-31'
-exec [sp_load_kpi_kcm_thuisgevoel_handmatig] '2021-08-31'
-exec [sp_load_kpi_zelfst_DAEB_eenheden] '2021-07-31'
-exec [sp_load_kpi_zelfst_DAEB_eenheden] '2021-08-31'
-exec [sp_load_kpi_energie] '2021-07-31', '%CO2%', 'CO2 uitstoot'
-exec [sp_load_kpi_energie] '2021-08-31', '%CO2%', 'CO2 uitstoot'
-exec [sp_load_kpi_energie] '2021-07-31', '%energievraag%', 'EP2 fossielenergiegebruik'
-exec [sp_load_kpi_energie] '2021-08-31', '%energievraag%', 'EP2 fossielenergiegebruik'
-exec [sp_load_kpi_energie] '2021-07-31', '%warmtevraag%', 'EP1 energiebehoefte'
-exec [sp_load_kpi_energie] '2021-08-31', '%warmtevraag%', 'EP1 energiebehoefte'
-exec [sp_load_kpi_energie_vernieuwde_labels] '2021-07-31'
-exec [sp_load_kpi_energie_vernieuwde_labels] '2021-08-31'
-exec [sp_load_kpi_energie_vernieuwde_labels] '2021-09-13'
-exec [sp_load_kpi_energie_vernieuwde_labels_energetische_verbetering] '2021-07-31'
-exec [sp_load_kpi_energie_vernieuwde_labels_energetische_verbetering] '2021-08-31'
-exec [sp_load_kpi_energie_vernieuwde_labels_energetische_verbetering] '2021-09-13'
-exec [sp_load_kpi_energie_vernieuwde_labels_geldigheid_verlopen] '2021-07-31'
-exec [sp_load_kpi_energie_vernieuwde_labels_geldigheid_verlopen] '2021-08-31'
-exec [sp_load_kpi_energie_vernieuwde_labels_geldigheid_verlopen] '2021-09-13'
-exec [sp_load_kpi_projecten_renovaties_opgeleverd_tijdelijk] '2021-07-31'
-exec [sp_load_kpi_projecten_renovaties_opgeleverd_tijdelijk] '2021-08-31'
-exec [sp_load_kpi_projecten_renovaties_gestart_tijdelijk] '2021-07-31'
-exec [sp_load_kpi_projecten_renovaties_gestart_tijdelijk] '2021-08-31'
-exec [sp_load_kpi_onderhoudsuren_portieken] '2021-07-31'
-exec [sp_load_kpi_onderhoudsuren_portieken] '2021-08-31'
-exec [sp_load_kpi_onderhoudsuren_portieken] '2021-09-13'
-exec [sp_load_kpi_bkt_renovaties] '2021-07-31'
-exec [sp_load_kpi_bkt_renovaties] '2021-08-31'
-exec [sp_load_kpi_bkt_renovaties] '2021-09-13'
-exec [sp_load_kpi_kcm_woonkwaliteit_hoger_dan_handmatig] '2021-07-31'
-exec [sp_load_kpi_kcm_woonkwaliteit_hoger_dan_handmatig] '2021-08-31'
-exec [sp_load_kpi_kcm_woonkwaliteit_lager_dan_handmatig] '2021-07-31'
-exec [sp_load_kpi_kcm_woonkwaliteit_lager_dan_handmatig] '2021-08-31'
-exec [sp_load_kpi_kcm_woonkwaliteit_handmatig] '2021-07-31'
-exec [sp_load_kpi_kcm_woonkwaliteit_handmatig] '2021-08-31'
-exec [sp_load_kpi_projecten_nieuwbouw_tijdelijk] '2021-07-31'
-exec [sp_load_kpi_projecten_nieuwbouw_tijdelijk] '2021-08-31'
-exec [sp_load_kpi_aantal_leegstaande_woningen] '2021-07-31'
-exec [sp_load_kpi_aantal_leegstaande_woningen] '2021-08-31'
-exec [sp_load_kpi_aantal_leegstaande_woningen] '2021-09-13'
-exec [sp_load_kpi_huuropzeggingen] '2021-07-31'
-exec [sp_load_kpi_huuropzeggingen] '2021-08-31'
-exec [sp_load_kpi_huuropzeggingen] '2021-09-13'
-exec [sp_load_kpi_beeindigde_fraude] '2021-07-31'
-exec [sp_load_kpi_beeindigde_fraude] '2021-08-31'
-exec [sp_load_kpi_beeindigde_fraude] '2021-09-30'
-exec [sp_load_kpi_verhuringen_regulier] '2021-07-31'
-exec [sp_load_kpi_verhuringen_regulier] '2021-08-31'
+20211110 JvdW Welke statements worden uitgevoerd ?
+
+[dbo].[sp_load_kpi]
+exec [sp_load_kpi_bedrijfslasten] '2021-09-30'
+
+exec [sp_load_kpi_huurderving] '2021-09-30'
+exec [sp_load_kpi_cashflow] '2021-09-30'
+exec [sp_load_kpi_debiteuren] '2021-09-30', @fk_indicator_id = 2629
+exec [sp_load_kpi_debiteuren] '2021-09-30', @fk_indicator_id = 2626
+exec [sp_load_kpi_debiteuren] '2021-09-30', @fk_indicator_id = 2620
+exec [sp_load_kpi_crediteuren] '2021-09-30', @fk_indicator_id = 2619
+exec [sp_load_kpi_crediteuren] '2021-09-30', @fk_indicator_id = 2616
+exec [sp_load_kpi_crediteuren] '2021-09-30', @fk_indicator_id = 2610
+exec [sp_load_kpi_fte] '2021-09-30'
+exec [sp_load_kpi_automatische_incasso] '2021-09-30'
+exec [sp_load_kpi_huurachterstand] '2021-09-30'
+exec [sp_load_kpi_huurachterstand_ontruimingen] '2021-09-30'
+exec [sp_load_kpi_huurachterstand_betalingsregelingen] '2021-09-30'
+exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-09-30', @eenzijdig_wijk=nee
+exec [sp_load_kpi_verhuringen_huurtoeslag] '2021-09-30', @eenzijdig_wijk=ja
+exec [sp_load_kpi_kcm_overige_processen] '2021-09-30'
+exec [sp_load_kpi_aantal_klachten_handmatig] '2021-09-30'
+exec [sp_load_kpi_kcm_klacht] '2021-09-30'
+exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2021-09-30', '%derden%EKG%', 'Extern'
+exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-09-30', '%derden%tevredenh%', 'Extern'
+exec [sp_load_kpi_npo_doorlooptijd] '2021-09-30'
+exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2021-09-30', '%eigen%dienst%EKG%', 'Eigen dienst'
+exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-09-30', '%eigen%dienst%tevredenh%', 'Eigen dienst'
+exec [sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '2021-09-30', '%tevred%reparatieverzoek%', ''
+exec [sp_load_kpi_kcm_nieuwe_huurder_handmatig] '2021-09-30'
+exec [sp_load_kpi_kcm_vertrokken_huurder] '2021-09-30'
+exec [sp_load_kpi_kcm_thuisgevoel_in_woonomgeving_handmatig] '2021-09-30'
+exec [sp_load_kpi_kcm_thuisgevoel_handmatig] '2021-09-30'
+exec [sp_load_kpi_zelfst_DAEB_eenheden] '2021-09-30'
+exec [sp_load_kpi_energie] '2021-09-30', '%CO2%', 'CO2 uitstoot'
+exec [sp_load_kpi_energie] '2021-09-30', '%energievraag%', 'EP2 fossielenergiegebruik'
+exec [sp_load_kpi_energie] '2021-09-30', '%warmtevraag%', 'EP1 energiebehoefte'
+exec [sp_load_kpi_energie_vernieuwde_labels] '2021-09-30'
+exec [sp_load_kpi_energie_vernieuwde_labels_energetische_verbetering] '2021-09-30'
+exec [sp_load_kpi_energie_vernieuwde_labels_geldigheid_verlopen] '2021-09-30'
+exec [sp_load_kpi_projecten_renovaties_opgeleverd_tijdelijk] '2021-09-30'
+exec [sp_load_kpi_rookmelder_percentage_aanwezig] '2021-09-30'
+exec [sp_load_kpi_rookmelder_aantal_geplaatst] '2021-09-30'
+exec [sp_load_kpi_onderhoudsuren_portieken] '2021-09-30'
+exec [sp_load_kpi_bkt_renovaties] '2021-09-30'
+exec [sp_load_kpi_kcm_woonkwaliteit_hoger_dan_handmatig] '2021-09-30'
+exec [sp_load_kpi_kcm_woonkwaliteit_handmatig] '2021-09-30'
+exec [sp_load_kpi_aantal_leegstaande_woningen] '2021-09-30'
+exec [sp_load_kpi_huuropzeggingen] '2021-09-30'
+
 exec [sp_load_kpi_verhuringen_regulier] '2021-09-30'
-exec [sp_load_kpi_verhuringen_tijdelijk] '2021-07-31'
-exec [sp_load_kpi_verhuringen_tijdelijk] '2021-08-31'
 exec [sp_load_kpi_verhuringen_tijdelijk] '2021-09-30'
-exec [sp_load_kpi_verhuringen_woningruil] '2021-07-31'
-exec [sp_load_kpi_verhuringen_woningruil] '2021-08-31'
 exec [sp_load_kpi_verhuringen_woningruil] '2021-09-30'
-exec [sp_load_kpi_verhuringen_doorstroom] '2021-07-31'
-exec [sp_load_kpi_verhuringen_doorstroom] '2021-08-31'
 exec [sp_load_kpi_verhuringen_doorstroom] '2021-09-30'
-exec [sp_load_kpi_verhuringen_fraude] '2021-07-31'
-exec [sp_load_kpi_verhuringen_fraude] '2021-08-31'
 exec [sp_load_kpi_verhuringen_fraude] '2021-09-30'
-exec [sp_load_kpi_verhuringen] '2021-07-31'
-exec [sp_load_kpi_verhuringen] '2021-08-31'
 exec [sp_load_kpi_verhuringen] '2021-09-30'
+
 
 ############################################################################################################################### */
 begin

@@ -5,7 +5,7 @@ GO
 
 
 
-CREATE  function [Projecten].[fn_OpleveringStart_tijdelijk] (@Peildatum as date = null, @SoortProject as nvarchar(50) = 'Nieuwbouw') 
+CREATE  function [Projecten].[fn_OpleveringStart_tijdelijk VERVALLEN] (@Peildatum as date = null, @SoortProject as nvarchar(50) = 'Nieuwbouw') 
 returns table 
 as
 /* ###################################################################################################
