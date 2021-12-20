@@ -2,8 +2,17 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE procedure [DatabaseBeheer].[sp_LoggenUitvoeringDatabaseObjecten]  
+CREATE procedure [DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
    @Categorie nvarchar(40) = 'Onbekend', @DatabaseObject nvarchar(255) = 'Onbekend databaseobject', @Bericht nvarchar(2047) = 'Nvt' 
+	, @Begintijd DATETIME = null, @Eindtijd DATETIME = NULL
+	, @ErrorProcedure NVARCHAR(255) = null
+	, @ErrorLine NVARCHAR(255) = null
+	, @ErrorNumber NVARCHAR(255) = null
+	, @ErrorMessage NVARCHAR(255) = NULL
+    , @WegschrijvenOfNiet AS BIT = 1
+	, @Variabelen NVARCHAR(255) = null
+	
+
 /* #######################################################################################
 BETREFT	procedure waarmee uitvoering/foutmeldingen gelogd worden
 > bedoeld om alles te gaan verzamelen en via Power BI doorlooptijd/foutmeldingen te kunnen rapporteren
@@ -57,17 +66,34 @@ begin
 			 set @Bericht = @tijdstip + ': '  +@Bericht
 			 RAISERROR (@Bericht, 0, 1) WITH NOWAIT 
 
-			insert into staedion_dm.DatabaseBeheer.LoggingUitvoeringDatabaseObjecten
+			IF @WegschrijvenOfNiet = 1 
+				BEGIN
+					INSERT into staedion_dm.DatabaseBeheer.LoggingUitvoeringDatabaseObjecten
 							(Categorie
 								 ,[Databaseobject]
+								 ,Variabelen
 								 ,[Stap]
 								 ,[Begintijd]
+								 ,[Eindtijd]
+								 ,[Tijdmelding]
+								 ,[ErrorProcedure]
+								 ,[ErrorLine]
+								 ,[ErrorNumber]
+								 ,[ErrorMessage]
 								 )
 					 VALUES (@Categorie
 								 ,@DatabaseObject
+								 ,@Variabelen
 								 ,@Bericht
+								 ,COALESCE(@Begintijd,@tijdstip)
+								 ,@Eindtijd
 								 ,@tijdstip
+								 ,@ErrorProcedure 
+								 ,@ErrorLine
+								 ,@ErrorNumber
+								 ,@ErrorMessage
 								 )
+				END
 			END TRY
 
 				BEGIN CATCH
@@ -75,6 +101,7 @@ begin
 						insert into staedion_dm.DatabaseBeheer.LoggingUitvoeringDatabaseObjecten
 							(Categorie
 								 ,[Databaseobject]
+								 ,Variabelen
 								 ,[Stap]
 								 ,[Begintijd]
 								 ,[Eindtijd]
@@ -85,9 +112,10 @@ begin
 								 ,[ErrorMessage])
 						 VALUES (@Categorie
 								 ,@DatabaseObject
+								 ,@Variabelen
 								 ,@Bericht
-								 ,@tijdstip
-								 ,NULL
+								 ,COALESCE(@Begintijd,@tijdstip)
+								 ,@Eindtijd
 								 ,getdate()
 								 ,ERROR_PROCEDURE() 
 								 ,ERROR_LINE() 

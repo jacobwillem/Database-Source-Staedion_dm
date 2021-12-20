@@ -9,6 +9,7 @@ CREATE TABLE [DatabaseBeheer].[LoggingUitvoeringDatabaseObjecten]
 [ErrorNumber] [int] NULL,
 [ErrorMessage] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL,
 [Categorie] [nvarchar] (40) COLLATE Latin1_General_CI_AS NULL,
-[Stap] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL
+[Stap] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL,
+[Variabelen] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO

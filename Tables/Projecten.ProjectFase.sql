@@ -18,7 +18,7 @@ CREATE TABLE [Projecten].[ProjectFase]
 GO
 ALTER TABLE [Projecten].[ProjectFase] ADD CONSTRAINT [PK_ProjectFase] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[ProjectFase] ADD CONSTRAINT [FK_ProjectFase_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[ProjectFase] ADD CONSTRAINT [FK_ProjectFase_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[ProjectFase] ADD CONSTRAINT [FK_ProjectFase_Werksoort] FOREIGN KEY ([Werksoort_Renteverlies_id]) REFERENCES [Projecten].[Werksoort] ([id])
 GO

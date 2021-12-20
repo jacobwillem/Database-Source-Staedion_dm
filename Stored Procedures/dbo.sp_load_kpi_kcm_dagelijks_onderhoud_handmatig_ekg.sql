@@ -15,8 +15,8 @@ exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '2020
 exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20200229', '%derden%EKG%', 'Extern'
 exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20200331', '%eigen%dienst%EKG%', 'Eigen dienst'
 exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20200331', '%derden%EKG%','Extern'
-exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20200430', '%eigen%dienst%EKG%', 'Eigen dienst'
-exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20200430', '%derden%EKG%', 'Extern'
+exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20210930', '%eigen%dienst%EKG%', 'Eigen dienst'
+exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig_ekg] '20210930', '%derden%EKG%', 'Extern'
 select * from empire_staedion_Data.etl.LogboekMeldingenProcedures order by Begintijd desc
 declare @fk_indicator_id as smallint
 select @fk_indicator_id = min(id) from [Dashboard].[Indicator] where lower([Omschrijving]) like '%eigen%dienst%EKG%'
@@ -70,10 +70,10 @@ begin try
 					-- JvdW 20210201
 		and year(Datum) >= 2021
 		
-	SET @AantalRecords = @@rowcount;	
-	SET @Bericht = 'Stap: ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
-	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
-	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+	--SET @AantalRecords = @@rowcount;	
+	--SET @Bericht = 'Stap: ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	--SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	--EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
 
 	-- Samenvatting opvoeren tbv dashboards
 
@@ -94,10 +94,10 @@ begin try
 		and year(Datum) >= 2021
 		group by det.fk_indicator_id
 
-	SET @AantalRecords = @@rowcount;	
-	SET @Bericht = 'Stap: realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
-	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
-	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+	--SET @AantalRecords = @@rowcount;	
+	--SET @Bericht = 'Stap: realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	--SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	--EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
 
 	set	@finish = current_timestamp
 	

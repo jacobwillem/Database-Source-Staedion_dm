@@ -21,7 +21,7 @@ CREATE TABLE [Projecten].[Budget]
 GO
 ALTER TABLE [Projecten].[Budget] ADD CONSTRAINT [PK_Budget] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Budget] ADD CONSTRAINT [FK_Budget_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Budget] ADD CONSTRAINT [FK_Budget_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[Budget] ADD CONSTRAINT [FK_Budget_BudgetRegelStatus] FOREIGN KEY ([Budgetstatus_id]) REFERENCES [Projecten].[BudgetRegelStatus] ([id])
 GO

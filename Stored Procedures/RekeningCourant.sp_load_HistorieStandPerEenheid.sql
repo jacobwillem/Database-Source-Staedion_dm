@@ -268,4 +268,7 @@ SELECT ERROR_LINE(), ERROR_NUMBER(),ERROR_MESSAGE()
 END CATCH
 
 ;
+
+GO
+GRANT EXECUTE ON  [RekeningCourant].[sp_load_HistorieStandPerEenheid] TO [public]
 GO

@@ -9,7 +9,7 @@ CREATE TABLE [Projecten].[Projecttype_werksoort]
 GO
 ALTER TABLE [Projecten].[Projecttype_werksoort] ADD CONSTRAINT [PK_Projecttype_werksoort] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Projecttype_werksoort] ADD CONSTRAINT [FK_Projecttype_werksoort_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Projecttype_werksoort] ADD CONSTRAINT [FK_Projecttype_werksoort_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[Projecttype_werksoort] ADD CONSTRAINT [FK_Projecttype_werksoort_ProjectType] FOREIGN KEY ([projecttype_id]) REFERENCES [Projecten].[ProjectType] ([id])
 GO

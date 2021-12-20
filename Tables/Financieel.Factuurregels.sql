@@ -31,6 +31,7 @@ CREATE TABLE [Financieel].[Factuurregels]
 [Opslag] [decimal] (12, 2) NULL,
 [Projectnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [BTW berekeningssoort] [int] NULL,
+[Integratieheffing] [int] NULL,
 [Clusternr] [varchar] (20) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO

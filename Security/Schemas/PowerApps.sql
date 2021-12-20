@@ -1,0 +1,3 @@
+CREATE SCHEMA [PowerApps]
+AUTHORIZATION [dbo]
+GO

@@ -3,7 +3,7 @@ GO
 SET ANSI_NULLS ON
 GO
 
-create procedure [dbo].[sp_load_kpi_projecten_microsoft_list] 
+CREATE procedure [dbo].[sp_load_kpi_projecten_microsoft_list] 
 		(@Peildatum as date = null, @SoortProject as nvarchar(50) = 'Nieuwbouw' , @SoortWerkzaamheden as nvarchar(50) = 'Start') 
 as
 /* #############################################################################################################################
@@ -23,15 +23,18 @@ WIJZIGINGEN
 20211110 JvdW Aangemaakt nav opgeleverde Microsoft Lists
 > ter vervanging voor Indicator = 200, sp_load_kpi_projecten_nieuwbouw_tijdelijk
 > ter vervanging voor Indicator = 400, sp_load_kpi_projecten_renovaties_gestart_tijdelijk
+20211115 JvdW bk_clusternummer verwijderd
+20211208 JvdW Transformatie = nieuwbouw
+> zie mail Astrid/Youness 7-12-2021: "1-	Transformatie laten vallen onder nieuwbouw (zoals dat tot nu toe in het dashboard ook is gedaan)"
 --------------------------------------------------------------------------------------------------------------------------------
 TESTEN
 --------------------------------------------------------------------------------------------------------------------------------
-exec staedion_dm.Dashboard.[sp_Projecten_Microsoft_List] '20211031', 'Nieuwbouw', 'Start'
-exec staedion_dm.Dashboard.[sp_Projecten_Microsoft_List] '20211031', 'Renovatie', 'Start'
-exec staedion_dm.Dashboard.[sp_Projecten_Microsoft_List] '20211031', 'Renovatie', 'Oplevering'
-exec staedion_dm.Dashboard.[sp_Projecten_Microsoft_List] '20211031', 'Nieuwbouw', 'Oplevering'
-exec staedion_dm.Dashboard.[sp_Projecten_Microsoft_List] null, 'Nieuwbouw', 'Start'
-exec staedion_dm.Dashboard.[sp_Projecten_Microsoft_List] null, 'Renovatie', 'Start'
+exec staedion_dm.[dbo].[sp_load_kpi_projecten_microsoft_list] '20211031', 'Nieuwbouw', 'Start'
+exec staedion_dm.[dbo].[sp_load_kpi_projecten_microsoft_list] '20211031', 'Renovatie', 'Start'
+exec staedion_dm.[dbo].[sp_load_kpi_projecten_microsoft_list] '20211031', 'Renovatie', 'Oplevering'
+exec staedion_dm.[dbo].[sp_load_kpi_projecten_microsoft_list] '20211031', 'Nieuwbouw', 'Oplevering'
+exec staedion_dm.[dbo].[sp_load_kpi_projecten_microsoft_list] null, 'Nieuwbouw', 'Start'
+exec staedion_dm.[dbo].[sp_load_kpi_projecten_microsoft_list] null, 'Renovatie', 'Start'
 
 select top 100 * from empire_staedion_Data.etl.LogboekMeldingenProcedures order by Begintijd desc
 
@@ -118,7 +121,6 @@ BEGIN TRY
 							,Datum
 							,[Omschrijving]
 							,fk_indicator_id
-							,bk_clusternummer
 							,clusternummer
 							)
 					SELECT	[Laaddatum] = CONVERT(date,GETDATE())
@@ -138,12 +140,11 @@ BEGIN TRY
 								,[Datum] = EOMONTH(DATEFROMPARTS(YEAR(@Peildatum),@Teller,1))
 								,[Omschrijving] = BASIS.Title
 								,@fk_indicator_id
-                                ,bk_clusternummer = case when left([FT-cluster],7) like 'FT-[0-9][0-9][0-9][0-9]%' then left([FT-cluster],7) else '' END
                                 ,clusternummer = case when left([FT-cluster],7) like 'FT-[0-9][0-9][0-9][0-9]%' then left([FT-cluster],7) else '' end                                
 					from	staedion_dm.Sharepoint.AantallenStartBouwOplevering as BASIS
 					WHERE	(
-								(BASIS.[TypeProject] in ('Nieuwbouw') and  @SoortProject = 'Nieuwbouw')
-								OR	(BASIS.[TypeProject] NOT IN ('Nieuwbouw') and  @SoortProject = 'Renovatie')
+								(BASIS.[TypeProject] in ('Nieuwbouw', 'Transformatie') and  @SoortProject = 'Nieuwbouw')
+								OR	(BASIS.[TypeProject] NOT IN ('Nieuwbouw','Transformatie') and  @SoortProject = 'Renovatie')
 							)
 					and		BASIS.Jaar = YEAR(@Peildatum)
 					and		BASIS.Peildatum = @Peildatum			-- data ophalen van de laatste peildatum uit Microsoft Lists (deze tabel wordt gesnapshot)
@@ -181,8 +182,8 @@ BEGIN TRY
 				,Laaddatum = CONVERT(DATE,GETDATE())
 				,'Ontleend aan Aantallen Start Bouw & Oplevering'	
 		FROM	staedion_dm.Sharepoint.AantallenStartBouwOplevering AS BASIS
-		WHERE	(	(BASIS.[TypeProject] in ('Nieuwbouw') and  @SoortProject = 'Nieuwbouw')
-							OR	(BASIS.[TypeProject] NOT IN ('Nieuwbouw') and  @SoortProject = 'Renovatie')
+		WHERE	(	(BASIS.[TypeProject] in ('Nieuwbouw', 'Transformatie') AND  @SoortProject = 'Nieuwbouw')
+							OR	(BASIS.[TypeProject] NOT IN('Nieuwbouw', 'Transformatie') and  @SoortProject = 'Renovatie')
 							)
 				and		BASIS.Jaar = YEAR(@Peildatum)
 				and		BASIS.Peildatum = @Peildatum

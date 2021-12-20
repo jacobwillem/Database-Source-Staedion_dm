@@ -2,18 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-
-
-
-
-
-
-
-
-
-
-
 CREATE view [Projecten].[vw_Projectgegevens]
 as 
 /* ##############################################################################################################################
@@ -105,7 +93,7 @@ AANVULLENDE INFO
 		ELSE 'Wel begroot'
 		END
 FROM projecten.Project AS prj
-INNER JOIN projecten.Bedrijf AS bdr ON prj.bedrijf_id = bdr.id
+INNER JOIN [Algemeen].[Bedrijven] AS bdr ON prj.bedrijf_id = bdr.Bedrijf_id
 INNER JOIN projecten.ProjectType AS pty ON prj.Projecttype_id = pty.id
 INNER JOIN projecten.ProjectFase AS pfa ON prj.Projectfase_id = pfa.id
 INNER JOIN projecten.ProjectStatus AS psa ON prj.Status_id = psa.id
@@ -138,5 +126,4 @@ LEFT OUTER JOIN empire_data.dbo.Contact AS PM ON PM.No_ = CASE
 		END
 	--where prj.Nr_ = 'PLOH-2100208'
 	--WHERE prj.Nr_ LIKE 'PLOH-20%'
-
 GO

@@ -7,6 +7,8 @@ GO
 
 
 
+
+
 CREATE procedure [Datakwaliteit].[sp_vve-beheerder] (@fk_indicatordimensie_id as int = null)   
 AS
 /* ###################################################################################################
@@ -134,6 +136,33 @@ BEGIN TRY
 --------------------------------------------------------------------------------------------------------------
 				if @fk_indicatordimensie_id = 20 -- is de VVE beheerder niet leeg als de VVE status 2 (Slapend) is, is de VVE beheerder leeg als de VVE status 1 (Actief) is of is de VVE beheerder geen Staedion VVE beheer terwijl de VVE-code wel gevuld is en geen '100% eigendom'
 					begin
+							with cteSEL as (
+							select	 [eenheidnr]	= [Realty Object No_]
+									,[type]			= [Type]
+									,[Start Date]	= max([Start Date])
+							from empire_data.dbo.Staedion$Realty_Object_Owner_Supervisor
+							WHERE	[Start Date] <= GETDATE()
+								and [Type] in (0, 1)
+							group by [Realty Object No_]
+									,[Type]
+											)
+							,cteBE as(
+							select	 piv.Eenheidnummer
+									,piv.Beheerder
+									,piv.Eigenaar
+							from (	
+							select	 Eenheidnummer	= jur.[Realty Object No_]
+									,Functie		= iif(jur.[Type] = 0, 'Beheerder', 'Eigenaar')
+									,Relatienummer	= iif(jur.[Type] = 0, jur.[Supervisor], jur.[Owner])
+							from empire_data.dbo.Staedion$Realty_Object_Owner_Supervisor as jur
+							inner join cteSEL
+								on		jur.[Realty Object No_] = cteSEL.Eenheidnr
+									and jur.[Start Date] = cteSEL.[Start Date]
+									and jur.[Type] = cteSEL.[Type]
+								) as src
+							pivot (max(src.Relatienummer) for src.Functie in ([Beheerder], [Eigenaar])) as piv
+									)
+
 							insert into Datakwaliteit.RealisatieDetails (Eenheidnr
 																		,Omschrijving
 																		,Bevinding
@@ -166,15 +195,47 @@ BEGIN TRY
 								UNION ALL
 
 								select distinct  Eenheidnr = co_vve.Eenheidnr_
-												,Omschrijving = 'VVE-cluster = ' + c_vve.Nr_ + ';  VVE-code = ' + cast(c_vve.[Code Owners Association] as varchar) + ';  VVE beheerder = ' + c_vve.Beheerder
-												,Bevinding = 'VVE beheerder is geen Staedion VVE beheer terwijl de VVE-code wel gevuld is en geen ''100% eigendom'''
+												,Omschrijving = 'VVE-cluster = ' + c_vve.Nr_ + ';  VVE status = ' + cast(c_vve.[Status VvE] as varchar) + ';  VVE-code = ' + cast(c_vve.[Code Owners Association] as varchar) + ';  VVE beheerder = ' + iif(c_vve.Beheerder = '' or c_vve.Beheerder is null, 'ONBEKEND/NVT', c_vve.Beheerder)
+												,Bevinding = 'VVE-code is geen ''100% eigendom'' terwijl VVE status 0 (Leeg) is'
 												,Laaddatum = @Laaddatum
 												,fk_indicator_id = @fk_indicator_id
 												,fk_indicatordimensie_id = @fk_indicatordimensie_id
 								from empire_data.dbo.Staedion$Cluster c_vve
 								left join empire_data.dbo.Staedion$Cluster_OGE co_vve on co_vve.Clusternr_ = c_vve.Nr_
-								where c_vve.Clustersoort = 'VVE' and c_vve.Beheerder <> 'RLTS-0000003' and c_vve.[Code Owners Association] not in ('', '100% eigendom')
+								where c_vve.Clustersoort = 'VVE' and c_vve.[Status VvE] = 0 and c_vve.[Code Owners Association] <> '100% eigendom'
 								
+								UNION ALL
+
+								-- De weg om een VVEC cluster te koppelen aan een collectief object is via de relatie OGEH-VVEC naar een gezamelijk
+								-- collectief object cluster waar zowel de OGEH eenheid als het collectieve object in zitten.
+								-- Het collectieve object heeft dan op eenheidsniveau CO-% een beheerder en eigenaar toegekend via bovenstaande CTE.
+								-- Er bestaat geen directe relatie tussen het VVEC cluster en een collectief object.
+
+								select distinct  ---[VVE clusternummer] = c_vve.Nr_
+												 --,[OGEH Eenheidnummer] = co_vve.Eenheidnr_
+												 --,[Collectief Object Clusternummer] = coc_vve.Clusternr_
+												 --,[Collectief Object eigenaar]	= cteBE.Eigenaar
+												 --,[Collectief Object eigenaar naam] = CON.[Name]
+												 Eenheidnr = cocco_vve.Eenheidnr_
+												,Omschrijving = 'VVE-cluster = ' + c_vve.Nr_ + ';  VVE status = ' + cast(c_vve.[Status VvE] as varchar) + ';  VVE beheerder = ' + iif(c_vve.Beheerder = '' or c_vve.Beheerder is null, 'ONBEKEND/NVT', c_vve.Beheerder)+ ';  Beheerder collectief object = ' + iif(cteBE.Beheerder = '' or cteBE.Beheerder is null, 'ONBEKEND/NVT', cteBE.Beheerder)
+												,Bevinding = 'De beheerder van het collectieve object is geen Staedion VVE beheer of de beheerder van het collectief object is niet hetzelfde als de VVE-beheerder van het VVEC cluster'
+												,Laaddatum = @Laaddatum
+												,fk_indicator_id = @fk_indicator_id
+												,fk_indicatordimensie_id = @fk_indicatordimensie_id
+								from empire_data.dbo.Staedion$Cluster c_vve
+								left join empire_data.dbo.Staedion$Cluster_OGE co_vve on co_vve.Clusternr_ = c_vve.Nr_
+								left join empire_data.dbo.Staedion$Cluster_OGE coc_vve on co_vve.Eenheidnr_ = coc_vve.Eenheidnr_
+								left join empire_data.dbo.Staedion$Cluster_OGE cocco_vve on coc_vve.Clusternr_ = cocco_vve.Clusternr_
+								left join cteBE on cocco_vve.Eenheidnr_ = cteBE.Eenheidnummer
+								left join empire_data.dbo.Contact as CON on cteBE.Eigenaar = CON.No_
+								where	c_vve.Clustersoort = 'VVE'
+									and c_vve.[Status VvE] = 1
+									and c_vve.Beheerder <> ''
+									and coc_vve.Clustersoort = 'COLLOBJ'
+									and cocco_vve.Eenheidnr_ like 'CO-%'
+									and (cteBE.Beheerder <> 'RLTS-0000003' or cteBE.Beheerder is null)
+									and (cteBE.Beheerder <> c_vve.Beheerder or cteBE.Beheerder is null)
+
 								SET @AantalRecords = @@ROWCOUNT
 
 								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');

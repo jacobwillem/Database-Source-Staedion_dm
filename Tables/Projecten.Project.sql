@@ -32,7 +32,7 @@ CREATE TABLE [Projecten].[Project]
 GO
 ALTER TABLE [Projecten].[Project] ADD CONSTRAINT [PK_Project] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Project] ADD CONSTRAINT [FK_project_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Project] ADD CONSTRAINT [FK_project_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[Project] ADD CONSTRAINT [FK_project_Functie_1] FOREIGN KEY ([Functie1_id]) REFERENCES [Projecten].[Functie] ([id])
 GO

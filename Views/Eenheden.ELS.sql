@@ -4,11 +4,44 @@ SET ANSI_NULLS ON
 GO
 
 
+
+
+
+
 CREATE view [Eenheden].[ELS]
 as
+with cte_snapshots as (
+  select
+    MONTH(datum_gegenereerd) as maand,
+    YEAR(datum_gegenereerd) as jaar,
+    MAX(datum_gegenereerd) as peildatum,
+    'Ultimo maand' as stand_van
+  FROM [empire_staedion_data].[dbo].[ELS] as els
+  where datum_gegenereerd >= '20200101' 
+  group by
+    MONTH(datum_gegenereerd),
+    YEAR(datum_gegenereerd)
+  union
+  select distinct
+    MONTH(datum_gegenereerd) as maand,
+    YEAR(datum_gegenereerd) as jaar,
+    datum_gegenereerd as peildatum,
+    'Primo maand' as stand_van
+  FROM [empire_staedion_data].[dbo].[ELS] as els
+  where (DAY(datum_gegenereerd) = 1 and MONTH(datum_gegenereerd) in (1,7))
+),
+cte_ls as (
+  select laatste = MAX(datum_gegenereerd) 
+  from [empire_staedion_data].[dbo].[ELS]
+)
 select
 [Sleutel eenheid]                                    = els.[id],
 [Datum]                                              = els.[datum_gegenereerd],
+[Stand van]                                          = cs.stand_van,
+[Meest recent]                                       = case 
+                                                         when els.datum_gegenereerd = cte_ls.laatste then 'Ja'
+                                                         else 'Nee' 
+                                                       end,
 [Bedrijf]                                            = els.[da_bedrijf],
 [Eenheidnr]                                          = els.[eenheidnr],
 [Postcode]                                           = els.[postcode],
@@ -23,7 +56,6 @@ select
 [Huidige labelconditie]                              = els.[huidige labelconditie],
 [Datum uit exploitatie]                              = els.[datum_uit_exploitatie],
 [Omschrijving technischtype]                         = els.[omschrijving_technischtype],
-[Scootmobielstalling]                                = case when els.omschrijving_technischtype = 'Scootmobielstalling' then 'Scootmobielstalling' else 'Geen Scootmobielstalling' end,
 [Da staedion groep technischtype]                    = els.[da_staedion_groep_technischtype],
 [Corpodata type]                                     = els.[corpodata_type],
 [Buurt]                                              = els.[buurt],
@@ -148,12 +180,8 @@ select
 [GO NEN2580 marktwaardering]                         = els.[GO NEN2580 marktwaardering],
 [Adres]                                              = els.[Adres]
 FROM [empire_staedion_data].[dbo].[ELS] as els
-where datum_gegenereerd >= '20200101' 
-and (
-  DAY(dateadd(dd,1,datum_gegenereerd)) = 1  or 
-  datum_gegenereerd = (select MAX(datum_gegenereerd) FROM [empire_staedion_data].[dbo].[ELS]) or
-  (DAY(datum_gegenereerd) = 1 and MONTH(datum_gegenereerd) in (1,7))
-)
-
+join cte_snapshots as cs on
+  cs.peildatum = els.datum_gegenereerd
+cross join cte_ls
 
 GO

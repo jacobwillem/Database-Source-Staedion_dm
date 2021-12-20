@@ -21,6 +21,7 @@ CREATE TABLE [Financieel].[Facturen]
 [Afgesloten op] [date] NULL,
 [Btw productboekingsgroepen] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
 [Zowel verlegde als gewone btw] [varchar] (3) COLLATE Latin1_General_CI_AS NULL,
+[Zowel btw met als zonder integratieheffing] [varchar] (3) COLLATE Latin1_General_CI_AS NULL,
 [Inkoper] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Inkoper naam] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
 [Toegewezen gebruiker] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,

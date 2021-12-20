@@ -46,13 +46,13 @@ WIJZIGINGEN
 > Performance issue mbt minder relevante velden uitgeschakeld
 > Eenheden waarvan Empire niet meer weet dat ze in het verleden waren van Vastgoed Holding (door deze informatie te wissen ipv met datum te beeindigen): handmatig toegevoegd + signalering
 EVT NOG DOEN: als Snapshot ELS niet beschikbaar is per @Datum-variabele, dan gaat het mis
-
+20211217 Cluster / kostenplaats ook updaten
 
 ----------------------------------------------------------------------------------------------------------------
 TEST
 ----------------------------------------------------------------------------------------------------------------
 exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig]
-exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @_DatumVanaf = '20210101',@_DatumTotenMet = '20210831' , @Eigenaar = 'Staedion VG Holding BV', @Testversie = 0
+exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @_DatumVanaf = '20210101',@_DatumTotenMet = '20211231' , @Eigenaar = 'Staedion VG Holding BV', @Testversie = 0
 exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @Testversie = 1
 exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @Eigenaar = 'WOM'
 
@@ -375,6 +375,7 @@ GROUP BY [G_L Entry No_]
 		and [Einddatum juridisch eigenaar] is NULL
 		and Eenheidnr in (SELECT Eenheidnr FROM #HandmatigUpdateOfInsert)
 		;
+
 		INSERT INTO staedion_dm.rapport.Eenheden_Jur_Eig (
 				[eenheidnr]
 				,[straat]
@@ -409,7 +410,7 @@ GROUP BY [G_L Entry No_]
 			EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
 
 	-----------------------------------------------------------------------------------
-	set @Onderwerp = 'Aanpassen eiddatum juridisch eigenaar - einddatum exploitatie eenheid';
+	set @Onderwerp = 'Aanpassen einddatum juridisch eigenaar - einddatum exploitatie eenheid';
 	----------------------------------------------------------------------------------- 
 		-- UPDATE [Einddatum juridisch eigenaar]
 		UPDATE BASIS
@@ -433,7 +434,7 @@ GROUP BY [G_L Entry No_]
 	Truncate table staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig;
 	
 	DROP TABLE IF exists ##Posten1; -- voor grootboekposten
-	DROP TABLE IF exists ##Posten2; -- voor toegerende posten
+	DROP TABLE IF exists ##Posten2; -- voor toegerekende posten
 	DROP TABLE IF EXISTS #JurEig;
 	DROP TABLE IF EXISTS #cte_eenheden;
 
@@ -683,7 +684,16 @@ GROUP BY [G_L Entry No_]
 	--from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as BASIS
 	--OUTER APPLY staedion_dm.[Eenheden].[fn_Eigenschappen](BASIS.Eenheidnr, GETDATE()) as KENM
 	--where	BASIS.[Juridisch eigenaar] is null
-	--;
+	----;
+	-----------------------------------------------------------------------------------
+	set @Onderwerp = 'Update kenmerken Cluster';
+	----------------------------------------------------------------------------------- 
+	update  BASIS
+	set		[Cluster] = CLUS.[FT-Clusternummer]
+	from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as BASIS
+		OUTER APPLY staedion_dm.Eenheden.fn_CLusterBouwblok (BASIS.[Eenheidnr]) AS CLUS
+	;
+
 				SET @AantalRecords = @@rowcount
 				;
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
@@ -823,8 +833,17 @@ GROUP BY [G_L Entry No_]
 								+ ' ' 
 								+ format(@DatumVanaf,'MM') 
 								+ ' t/m '
-								+ format(@DatumTotEnMet,'MM-yyyy') 
-	;
+								+ format(@DatumTotEnMet,'MM-yyyy') 	
+								;
+		UPDATE  staedion_dm.rapport.Memoriaal_Jur_Eig
+		set		[Clusternr.] = CLUS.[FT-Clusternummer]
+					,[Kostenplaats code] = OGE.[Global Dimension 1 Code]
+		FROM    staedion_dm.rapport.Memoriaal_Jur_Eig AS BASIS
+		OUTER APPLY staedion_dm.Eenheden.fn_CLusterBouwblok (BASIS.[Eenheidnr.]) AS CLUS
+		LEFT OUTER JOIN empire_Data.dbo.staedion$OGE AS OGE 
+		ON OGE.Nr_ = BASIS.[Eenheidnr.]
+		;
+
 				SET @AantalRecords = @@rowcount
 				;
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';

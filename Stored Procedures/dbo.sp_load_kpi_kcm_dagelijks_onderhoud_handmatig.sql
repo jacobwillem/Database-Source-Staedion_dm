@@ -56,10 +56,10 @@ BEGIN TRY
 		-- JvdW 20210201
 		and year(Datum) >= 2021
 		
-	SET @AantalRecords = @@rowcount;	
-	SET @Bericht = 'Stap: ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
-	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
-	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+	--SET @AantalRecords = @@rowcount;	
+	--SET @Bericht = 'Stap: ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	--SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	--EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
 
 	-- Samenvatting opvoeren tbv dashboards
 
@@ -80,10 +80,10 @@ BEGIN TRY
 		and year(Datum) >= 2021
 		group by det.fk_indicator_id
 
-	SET @AantalRecords = @@rowcount;	
-	SET @Bericht = 'Stap: realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
-	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
-	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+	--SET @AantalRecords = @@rowcount;	
+	--SET @Bericht = 'Stap: realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	--SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	--EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
 
 	set	@finish = current_timestamp
 	

@@ -7,32 +7,26 @@ as
 begin
 
   -- update de bk's obv de fk's (dit om niet meer afhankelijk te zijn van dwh).
-  -- JvdW 20211111 uitgezet, vanwege foutmelding 
-  -- UPDATE failed because the following SET options have incorrect settings: 'ANSI_WARNINGS'. 
-  -- Verify that SET options are correct for use with indexed views and/or indexes on computed columns and/or filtered indexes and/or query notifications and/or XML data type methods and/or spatial index operations.
-
-  -- SET ANSI_WARNINGS OFF
-
   update rd
     set 
-      rd.bk_eenheidnummer = con.bk_eenheidnr,
-      rd.bk_klantnummer = con.fk_klant_id
+      rd.eenheidnummer = con.bk_eenheidnr,
+      rd.klantnummer = nullif(con.fk_klant_id, '------------------')
   from [Dashboard].[RealisatieDetails] as rd
   join empire_dwh..contract as con on con.id = rd.fk_contract_id
-  where rd.bk_klantnummer is null
+  where rd.klantnummer is null
 
   update rd
     set 
-      rd.bk_eenheidnummer = e.bk_nr_
+      rd.eenheidnummer = e.bk_nr_
   from [Dashboard].[RealisatieDetails] as rd
   join empire_dwh..eenheid as e on e.id = rd.fk_eenheid_id
-  where rd.bk_eenheidnummer is null
+  where rd.eenheidnummer is null
 
   update rd
     set 
-      rd.bk_klantnummer = rd.fk_klant_id
+      rd.klantnummer = rd.fk_klant_id
   from [Dashboard].[RealisatieDetails] as rd
-  where rd.bk_klantnummer is null
+  where rd.klantnummer is null
 
   update rd set
 	 rd.[Detail_01] = trim(cast('<t><![CDATA[' + replace(rd.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[1]','varchar(128)'))
@@ -47,13 +41,6 @@ begin
 	,rd.[Detail_10] = trim(cast('<t><![CDATA[' + replace(rd.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[10]','varchar(128)'))
 	from [Dashboard].[RealisatieDetails] as rd
 	where rd.[Detail_01] is null
-
-	update rd set
-		rd.bk_clusternummer = rd.Clusternummer
-		from [Dashboard].[RealisatieDetails] as rd
-		where rd.bk_clusternummer is null
-
-  --SET ANSI_WARNINGS ON
 
 end
 GO

@@ -85,7 +85,7 @@ begin
 							  OR  OGE.[Einde exploitatie] = ''17530101'')
 							 AND ELA.' + quotename(@meeteenheid) + ' IS NOT NULL
 							 AND ELA.' + quotename(@meeteenheid) + ' <> 0'
-			print(@sql)
+			--print(@sql)
 			exec sp_executesql @sql
 
 				/*insert into [Dashboard].[RealisatieDetailsTest] (

@@ -5,9 +5,10 @@ GO
 
 
 
-CREATE view [Dashboard].[vw_RealisatiePrognose2]
-as
-	select
+
+CREATE VIEW [Dashboard].[vw_RealisatiePrognose2]
+AS
+	SELECT
 		 R.[id]
 		,R.[fk_indicator_id]
 		,R.[Datum]
@@ -26,40 +27,40 @@ as
 		,[Detail_08]
 		,[Detail_09]
 		,[Detail_10]
-		,[Clusternummer] = R.[bk_clusternummer]
+		,[Clusternummer] = R.[clusternummer]
 		,[Prognose] = 0
-	from [Dashboard].[RealisatieDetails] as R
+	FROM [Dashboard].[RealisatieDetails] AS R
 
-	union
+	UNION
 
-	select
+	SELECT
 		 [id] = (P.[id] + 1000000000000)
 		,[fk_indicator_id] = P.[fk_indicator_id]
 		,[Datum] = P.[Datum]
-		,[Laaddatum] = getdate()
+		,[Laaddatum] = GETDATE()
 		,[Waarde] = P.[Waarde]
-		,[Teller] = null
-		,[Noemer] = null
+		,[Teller] = NULL
+		,[Noemer] = NULL
 		,[Omschrijving] = P.[Omschrijving]
-		,[Detail_01] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[1]','varchar(128)'))
-		,[Detail_02] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[2]','varchar(128)'))
-		,[Detail_03] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[3]','varchar(128)'))
-		,[Detail_04] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[4]','varchar(128)'))
-		,[Detail_05] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[5]','varchar(128)'))
-		,[Detail_06] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[6]','varchar(128)'))
-		,[Detail_07] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[7]','varchar(128)'))
-		,[Detail_08] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[8]','varchar(128)'))
-		,[Detail_09] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[9]','varchar(128)'))
-		,[Detail_10] = trim(cast('<t><![CDATA[' + replace(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[10]','varchar(128)'))
-		,[Clusternummer] = null
+		,[Detail_01] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[1]','varchar(128)'))
+		,[Detail_02] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[2]','varchar(128)'))
+		,[Detail_03] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[3]','varchar(128)'))
+		,[Detail_04] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[4]','varchar(128)'))
+		,[Detail_05] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[5]','varchar(128)'))
+		,[Detail_06] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[6]','varchar(128)'))
+		,[Detail_07] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[7]','varchar(128)'))
+		,[Detail_08] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[8]','varchar(128)'))
+		,[Detail_09] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[9]','varchar(128)'))
+		,[Detail_10] = TRIM(CAST('<t><![CDATA[' + REPLACE(P.[Omschrijving] ,';', ']]></t><t><![CDATA[') + ']]></t>' AS XML).value('/t[10]','varchar(128)'))
+		,[Clusternummer] = NULL
 		,[Prognose] = 1
-	from [Dashboard].[PrognoseDetails] as P
-	where not exists (
-	  select 1
-	  from Dashboard.RealisatieDetails as RD
-	  where RD.[fk_indicator_id] = P.[fk_indicator_id]
-	  and year(RD.[Datum]) = year(P.[Datum])
-	  and month(RD.[Datum]) = month(P.[Datum])
+	FROM [Dashboard].[PrognoseDetails] AS P
+	WHERE NOT EXISTS (
+	  SELECT 1
+	  FROM Dashboard.RealisatieDetails AS RD
+	  WHERE RD.[fk_indicator_id] = P.[fk_indicator_id]
+	  AND YEAR(RD.[Datum]) = YEAR(P.[Datum])
+	  AND MONTH(RD.[Datum]) = MONTH(P.[Datum])
 	)
 
 GO

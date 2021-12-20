@@ -65,7 +65,8 @@ WIJZIGINGEN
 	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20210927', @Entiteit = 'Relaties', @Attribuut = 'Registratie van overlijden', @fk_indicatordimensie_id = 19
 20211020 Versie 19 JvdW - telefoonnr toevoegen zittende huurder/vertrokken + relatienr
 	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211102', @Entiteit = 'Relaties', @Attribuut = 'Correspondentietype'
-
+20211208 Versie 20 JvdW - Afwijking naam huurder contractregel vs huishoudkaart
+	exec  [staedion_dm].[Datakwaliteit].[sp_overig]  @Laaddatum = '20211207', @Entiteit = 'Relaties', @Attribuut = 'Afwijking naam huurder contractregel vs huishoudkaart'
 ------------------------------------------------------------------------------------------------------
 CHECKS                   
 ------------------------------------------------------------------------------------------------------
@@ -1166,6 +1167,40 @@ BEGIN TRY
 		
 						END
 --------------------------------------------------------------------------------------------------------------
+				if @Attribuut = 'Afwijking naam huurder contractregel vs huishoudkaart'	 -- 6025
+
+					BEGIN
+								insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
+								SELECT Omschrijving =  ' Prioriteit = ' + COALESCE(BASIS.Prioriteit,'?') +
+															' Naam huishoudkaart = ' + BASIS.[Huurdernaam huishoudkaart] +  
+															' Naam contractkaart = ' + BASIS.[Huurdernaam contractkaart] +
+															' Klantnr = ' + BASIS.Huurdernr 
+											 ,1
+											 ,1
+											 ,BASIS.Huurdernr
+											 ,@Laaddatum
+											 ,@fk_indicator_id
+											 ,@fk_indicatordimensie_id
+								-- select select	count(*), count(distinct Huurdernr), [Huurdernaam contractkaart], [Huurdernaam huishoudkaart], Prioriteit
+								FROM	staedion_dm.Datakwaliteit.[vw_NaamgevingKlantenHuishoudkaart] AS BASIS
+								;
+
+								SET @AantalRecords = @@ROWCount
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
+								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
+								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
+								;
+
+								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
+								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
+
+		
+						END
+--------------------------------------------------------------------------------------------------------------
+
 		end
 
 		set		@finish = current_timestamp

@@ -24,7 +24,7 @@ ALTER TABLE [Projecten].[Budget_historie] ADD CONSTRAINT [PK_Budget_historie] PR
 GO
 CREATE NONCLUSTERED INDEX [Budget_historie_01] ON [Projecten].[Budget_historie] ([bedrijf_id], [Project_id], [Projectfase_id], [Budgetregelnr_], [Cluster], [Peildatum]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Budget_historie] ADD CONSTRAINT [FK_Budget_historie_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Budget_historie] ADD CONSTRAINT [FK_Budget_historie_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[Budget_historie] ADD CONSTRAINT [FK_Budget_historie_BudgetRegelStatus] FOREIGN KEY ([Budgetstatus_id]) REFERENCES [Projecten].[BudgetRegelStatus] ([id])
 GO

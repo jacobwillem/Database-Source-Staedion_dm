@@ -8,5 +8,5 @@ CREATE TABLE [Projecten].[Functie]
 GO
 ALTER TABLE [Projecten].[Functie] ADD CONSTRAINT [PK_Functie] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Functie] ADD CONSTRAINT [FK_Functie_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Functie] ADD CONSTRAINT [FK_Functie_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO

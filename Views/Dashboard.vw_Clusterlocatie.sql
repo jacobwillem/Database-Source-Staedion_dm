@@ -6,6 +6,7 @@ GO
 
 
 
+
 CREATE VIEW [Dashboard].[vw_Clusterlocatie]
 AS
 
@@ -195,6 +196,24 @@ UNION ALL
 SELECT BUCode = 'BU05184107'
 	,Gebied = 'Groen')
 ,cteGB as(select distinct * from cteGBconcept)
+,cteWF as(
+SELECT	 Thuisteam = 'Thuisteam Centrum'
+		,Woonfraudebestrijder = 'Bob Koopman'
+
+UNION ALL
+
+SELECT   Thuisteam = 'Thuisteam Zuid-West'
+		,Woonfraudebestrijder = 'Brendan Holters'
+
+UNION ALL
+
+SELECT	 Thuisteam = 'Thuisteam Zuid-Oost'
+		,Woonfraudebestrijder = 'Eric Buitenhuis'
+
+UNION ALL
+
+SELECT	 Thuisteam = 'Thuisteam Noord-West'
+		,Woonfraudebestrijder = 'Eric Buitenhuis')
 
 --select tmp.BuurtCode, tmp.Thuisteam, src.BuurtCode, src.Thuisteam from #TempTT as tmp left outer join [empire_staedion_data].[bik].[ELS_BuurtCodeThuisteam] as src on tmp.BuurtCode = src.BuurtCode where tmp.Thuisteam != src.Thuisteam order  by src.BuurtCode;
 
@@ -203,6 +222,7 @@ SELECT BUCode = 'BU05184107'
 
 select cteBU.Clusternummer
 		,[Deelgebied] = replace(cteTHTE.Thuisteam, 'Thuisteam ', '')
+		,cteWF.Woonfraudebestrijder
 		,DagelijksOnderhoudGebied = GB.Gebied
 		,GMcode = N'GM' + RIGHT(N'0000' + CAST(BU.[Municipality Code] AS NVARCHAR), 4)
 		,WKcode = N'WK' + RIGHT(N'000000' + CAST(BU.[District Code] AS NVARCHAR), 6)
@@ -217,6 +237,7 @@ select cteBU.Clusternummer
 		inner join empire.empire.dbo.[CBS Neighborhood] AS BU ON BU.[Code] = cteBU.BuurtCode
 		inner join empire.empire.dbo.[CBS District] AS DI ON DI.[Code] = BU.[District Code]
 		inner join empire.empire.dbo.[Municipality] AS GM ON GM.[Code] = BU.[Municipality Code]
+	    left outer join cteWF on cteTHTE.Thuisteam = cteWF.Thuisteam
 		left outer join empire_staedion_data.bik.Leefbaarometer_gridscore as LBM on LBM.cluster_nr = cteBU.Clusternummer
 		left outer join empire_staedion_data.bik.Leefbaarometer_gridscore_overige_coordinaten as CORD on CORD.Clusternummer = cteBU.Clusternummer
 		left outer join cteGB as GB on GB.BUCode = cteBU.BUcode

@@ -21,7 +21,7 @@ CREATE TABLE [Projecten].[Verplichting]
 GO
 ALTER TABLE [Projecten].[Verplichting] ADD CONSTRAINT [PK_Verplichting] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Verplichting] ADD CONSTRAINT [FK_Verplichting_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Verplichting] ADD CONSTRAINT [FK_Verplichting_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[Verplichting] ADD CONSTRAINT [FK_Verplichting_Project] FOREIGN KEY ([Project_id]) REFERENCES [Projecten].[Project] ([id])
 GO

@@ -24,7 +24,7 @@ exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211108'
 exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211101'
 exec staedion_dm.[Sharepoint].[sp_AantallenStartBouwOplevering] '20211130'
 
-select * from staedion_dm.DatabaseBeheer.LoggingUitvoeringDatabaseObjecten
+select * from staedion_dm.DatabaseBeheer.LoggingUitvoeringDatabaseObjecten order by 2 desc
 ----------------------------------------------------------------------------------------------------------------------------------
 AANTEKENINGEN
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -41,6 +41,8 @@ Alternatief is alle wijzigingen loggen en wegschrijven maar volgens mij is het r
 AS 
 
 BEGIN
+	SET NOCOUNT ON
+
 	DECLARE @Bericht NVARCHAR(50)
 
 	-- oude code
@@ -71,9 +73,11 @@ BEGIN
 	WHERE YEAR(@Peildatum) = YEAR(Peildatum) 
 	AND MONTH(@Peildatum) = MONTH(Peildatum) 
 
+	SELECT @Peildatum AS Peildatum
+
 	-- loggen van deze stap
 	SET @Bericht =  'Peildatum = ' + FORMAT(@Peildatum,'dd-MM-yyyy')
-	EXEC staedion_dm.DatabaseBeheer.sp_LoggenUitvoeringDatabaseObjecten  null,'sp_LoggenUitvoeringDatabaseObjecten', @Bericht
+	EXEC staedion_dm.DatabaseBeheer.sp_loggen_uitvoering_database_objecten  null,'sp_LoggenUitvoeringDatabaseObjecten', @Bericht
 
 END
 

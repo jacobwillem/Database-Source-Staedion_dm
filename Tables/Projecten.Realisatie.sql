@@ -20,7 +20,7 @@ CREATE TABLE [Projecten].[Realisatie]
 GO
 ALTER TABLE [Projecten].[Realisatie] ADD CONSTRAINT [PK_Realisatie] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]
 GO
-ALTER TABLE [Projecten].[Realisatie] ADD CONSTRAINT [FK_Realisatie_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Projecten].[Bedrijf] ([id])
+ALTER TABLE [Projecten].[Realisatie] ADD CONSTRAINT [FK_Realisatie_Bedrijf] FOREIGN KEY ([bedrijf_id]) REFERENCES [Algemeen].[Bedrijven] ([Bedrijf_id])
 GO
 ALTER TABLE [Projecten].[Realisatie] ADD CONSTRAINT [FK_Realisatie_Budget] FOREIGN KEY ([Budget_id]) REFERENCES [Projecten].[Budget] ([id])
 GO

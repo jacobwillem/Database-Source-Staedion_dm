@@ -251,6 +251,7 @@ select
   [VVE-Cluster]                     = vve.vve_cluster,
   [VVE-Clusternummer]               = vve.vve_clusternr,
   [VVE-Clusternaam]                 = ltrim(replace(vve.vve_cluster,vve.vve_clusternr,'')),
+  [Scootmobielstalling]             = case when t.Omschrijving = 'Scootmobielstalling' then 'Scootmobielstalling' else 'Overig' end,
   [Eenheidtype Corpodata]           = t.[Analysis Group Code],
   [Eenheidtype groepering]          = case
                                         when t.[Analysis Group Code] = 'BOG' then 'BOG'
@@ -298,8 +299,10 @@ select
                                            when verd.Verdieping =  4 then '04 - 4e etage'
                                            when verd.Verdieping >= 5 then '05 - 5e etage of hoger' 
                                       end,
+  [Etage detail]                    = 'Etage ' + convert(varchar,convert(int,verd.verdieping)),
+  [Etage detail sortering]          = verd.verdieping,
   [Aantal kamers]                   = ctea.[aantal kamers],
-  [Groepering aantal kamers]        = ctea.[Groepering aantal kamers],
+  [Groepering aantal kamers]        = isnull(ctea.[Groepering aantal kamers],'Onbekend'),
   [Gem. oppervlakte]                = ctea.[Gem. oppervlakte],
   [Oppervlakte]                     = coalesce(e.bagoppervlakte,ctea.[Oppervlakte],oo.opp,#vvo.aantal),
   [Leegwaarde]                      = cm.Leegwaarde,
