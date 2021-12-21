@@ -6,7 +6,6 @@ GO
 CREATE PROCEDURE [Elementen].[sp_pbi_load_Huurkorting] (@Peildatum DATE = null) 
 AS
 /* #############################################################################################################################
-
 EXEC sys.sp_addextendedproperty @name = N'MS_Description'
        ,@value = N'Procedure die de boekingen ophaalt van kortingselementen en verwerkt in de volgende tabellen:
 	   staedion_dm.Elementen.HuurkortingSamenvatting
@@ -17,9 +16,9 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description'
        ,@level0type = N'SCHEMA'
        ,@level0name = 'Elementen'
        ,@level1type = N'PROCEDURE'
-       ,@level1name = 'sp_load_kpi_sp_pbi_load_Huurkorting';
+       ,@level1name = 'sp_pbi_load_Huurkorting';
 GO
-exec staedion_dm.[DatabaseBeheer].[sp_info_object_en_velden] 'staedion_dm', 'Dashboard','sp_load_kpi_sp_pbi_load_Huurkorting'
+exec staedion_dm.[DatabaseBeheer].[sp_info_object_en_velden] 'staedion_dm', 'Elementen','sp_pbi_load_Huurkorting'
 GO
 --------------------------------------------------------------------------------------------------------------------------------
 WIJZIGINGEN 
@@ -424,7 +423,7 @@ set @onderwerp = 'Update [HuurkortingSamenvatting]: Herzieningsdatum';
 					,@Eindtijd = @finish
 					,@DatabaseObject = @_Bron
 					,@Variabelen = null
-					,@Bericht = @onderwerp
+					,@Bericht = null
 					,@WegschrijvenOfNiet = 1
 
 
@@ -437,18 +436,6 @@ BEGIN CATCH
 		DECLARE @_ErrorLine AS INT = ERROR_LINE()
 		DECLARE @_ErrorNumber AS INT = ERROR_NUMBER()
 		DECLARE @_ErrorMessage AS NVARCHAR(255) = LEFT(ERROR_MESSAGE(),255)
-    
-
-		--insert into empire_staedion_Data.etl.LogboekMeldingenProcedures ([Databaseobject],BeginTijd, Eindtijd,TijdMelding, ErrorProcedure,ErrorNumber,ErrorLine,ErrorMessage)
-		--select	[Databaseobject] = @LogboekTekst
-		--		,BeginTijd = @start	
-		--		,Eindtijd = null	
-		--		,TijdMelding = @finish
-		--			,@DatabaseObject = @LogboekTekst -- @_Bron
-		--		,ErrorProcedure = ERROR_PROCEDURE() 
-		--		,ErrorNumber = ERROR_NUMBER()
-		--		,ErrorLine = ERROR_LINE()
-		--		,ErrorMessage = ERROR_MESSAGE() 
 
 	EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
 					@Categorie = 'Dataset rapport laden'
