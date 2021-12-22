@@ -3,20 +3,12 @@ GO
 SET ANSI_NULLS ON
 GO
 
-
-
-
-
-
-
-
-
-
-
-
 CREATE  VIEW [Datakwaliteit].[vw_RealisatieDetails]
 AS
--- JvdW 30-12-2020 Geen ; maar - ivm output naar csv
+-- JvdW 20201230 Geen ; maar - ivm output naar csv
+-- JvdW 20211222 Hyperlink uitgebreid - oude statement bouwjaar laten staan, weet niet of ie ergens in gebruik is (lijkt me niet)
+-- NB: als Eenheidnr gevuld is met een CO-nr dan werkt de link nog niet
+-- NB: als hyperlink lege argumenten bevat zou ik beter naar een bepaalde informatie-pagina kunnen gaan, nu alleen tekst melding
 SELECT	I.id_samengesteld
 		,R.id
 		,[Sleutel entiteit] = CASE I_parent.[Omschrijving]
@@ -42,9 +34,14 @@ SELECT	I.id_samengesteld
 	   ,R.datIngang
 	   ,R.datEinde
 	   ,Aantal = 1
-	   ,Hyperlink = CASE WHEN I.Omschrijving = 'bouwjaar' 
-							THEN empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.=''' + R.Eenheidnr + '''', 'view')
-							ELSE R.Hyperlink END
+	   ,Hyperlink = CASE I_parent.[Omschrijving]
+									WHEN 'Eenheid' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.='+R.[Eenheidnr]+'', 'view')+'">'+R.[Eenheidnr]+'</a>','< Link niet op kunnen halen - lege argumenten >')
+									WHEN 'Klant' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 21, 'Nr.='+R.[Klantnr]+'', 'view')+'">'+R.[Klantnr]+'</a>','< Link niet op kunnen halen - lege argumenten >')
+									WHEN 'Relaties' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 5050, 'No.='+R.Relatienr+'', 'view')+'">'+R.Relatienr+'</a>','< Link niet op kunnen halen - lege argumenten >')
+									WHEN 'Contracten' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 11024012, 'Soort=1,Eenheidnr.='+R.[Eenheidnr]+'', 'view')+'">'+R.[Eenheidnr]+'</a>','< Link niet op kunnen halen - lege argumenten >')
+									ELSE CASE WHEN I.Omschrijving = 'bouwjaar' THEN empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.=''' + R.Eenheidnr + '''', 'view')
+										ELSE R.Hyperlink END
+										END
 	   ,R.Omschrijving
 	   ,R.Bevinding
 --       ,[Ontbrekend] = R.Noemer - R.Teller
