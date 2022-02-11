@@ -1,0 +1,34 @@
+- title: Welkom !
+  url: /readme
+  not_numbered: true
+  sections:
+  - title: KCM
+    url: /kcm/readme
+    not_numbered: true
+    sections:
+    - title: Belangrijkste views
+      url: kcm/Belangrijkste views
+    - title: Details
+      url: kcm/Details
+    - title: Overzicht tabellen ed
+      url: kcm/Overzicht tabellen
+  - title: Huuraanpassing
+    url: /empire_huuraanpassing/readme
+    not_numbered: true
+    sections:
+    - title: Jaarlijkse Huuraanpassing 2021
+      url: empire_huuraanpassing/Jaarlijkse Huuraanpassing
+  - title: IRIS
+    url: /iris/readme
+    not_numbered: true
+    sections:
+    - title: Handmatig overhalen telefonische contacten Intake en planning tbv KCM 
+      url: iris/Iris telefonische contacten intake en planning
+    - title: Handmatig overhalen klachten voor Dashboard
+      url: iris/Aantal klachten
+  - title: Xtendis
+    url: /xtendis/readme
+    not_numbered: true
+    sections:
+    - title: Metadata over documenten 
+      url: xtendis/Voorbeeld
