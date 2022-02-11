@@ -12,6 +12,8 @@
       url: kcm/Details
     - title: Overzicht tabellen ed
       url: kcm/Overzicht tabellen
+    - title: Verstuurde enquetes
+      url: kcm/Verstuurde enquetes     
   - title: Huuraanpassing
     url: /empire_huuraanpassing/readme
     not_numbered: true
