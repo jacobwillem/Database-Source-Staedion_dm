@@ -34,3 +34,9 @@
     sections:
     - title: Metadata over documenten 
       url: xtendis/Voorbeeld
+  - title: Overig
+    url: /Overig/readme
+    not_numbered: true
+    sections:
+    - title: BIK nieuw jaargang toevoegen 
+      url: Overig/BIK nieuw jaargang toevoegen
