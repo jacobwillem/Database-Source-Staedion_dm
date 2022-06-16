@@ -81,3 +81,9 @@ CREATE TABLE [Onderhoud].[Onderhoudstaak]
 [Aantal projectposten] [int] NULL
 ) ON [PRIMARY]
 GO
+CREATE CLUSTERED INDEX [cidx_Onderhoudstaak_Onderhoudstaak_id_bedrijf_id] ON [Onderhoud].[Onderhoudstaak] ([Bedrijf_id], [Onderhoudsorder_id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [i1_onderhoudstaak] ON [Onderhoud].[Onderhoudstaak] ([Geldig tot], [Onderhoudsverzoek]) INCLUDE ([Reparatiesjabloon_id], [Onderhoudstaakstatus_id], [Kostencode_id], [Onderhoudsorder], [Afrondcode_id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [idx_Onderhoudstaak_onderhoudsverzoek_id] ON [Onderhoud].[Onderhoudstaak] ([Onderhoudsverzoek_id]) INCLUDE ([Geldig tot]) ON [PRIMARY]
+GO

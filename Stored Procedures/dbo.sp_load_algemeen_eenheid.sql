@@ -55,6 +55,17 @@ begin
   where Kenmerk = 'OK135'
   and waarde >= 2
 
+  select
+    ec.Eenheidnr_,
+    ec.Contactnr_,
+    c.Name,
+    prio = ROW_NUMBER() over (partition by eenheidnr_ order by contactnr_)
+  into #verhuurder
+  from empire_data.dbo.vw_lt_mg_eenheid_contactpersoon as ec 
+  join empire_data.dbo.contact as c on c.No_ = ec.Contactnr_
+  where Functie = 'CB-EVHPPL'
+  
+
  select 
     cl.mg_bedrijf,
     [eenheidnummer]                = o.Nr_,
@@ -358,21 +369,26 @@ select
                                         when tar.description like 'B%' then 'Aftoppingsgrens laag'
                                         when tar.description like 'C%' then 'Aftoppingsgrens hoog'
                                         when tar.description like 'D%' then 'Tot huurprijsgrens'
-                                        else 'Boven huurprijsgrens'
+                                        when tar.Description like 'E%' then 'Middenhuur'
+                                        else 'Vrije sector'
                                       end,
   [Streefhuursegmentatie sortering] = case 
                                         when tar.description like 'A%' then 1
                                         when tar.description like 'B%' then 2
                                         when tar.description like 'C%' then 3
                                         when tar.description like 'D%' then 4
-                                        else 5
+                                        when tar.description like 'E%' then 5
+                                        else 6
                                       end,
    [Voorheen Vestia] = CONVERT(NVARCHAR(10),NULL)	,															-- JvdW 12-03-2021
    [Huidig contract met reden huurverlaging] = CONVERT(NVARCHAR(20),NULL),							-- JvdW 12-03-2021
 	 [EAN Code Electriciteit] = o.[EAN Code Electricity],												-- JvdW 23-06-2021
    o.[EAN Code Gas],																												-- JvdW 23-06-2021
 	 [EAN Code] = coalesce(nullif(o.[EAN Code Gas],''),nullif(o.[EAN Code Electricity],'')), -- JvdW 12-10-2021
-   [Contactpersoon BOG] = convert(nvarchar(100),null)														-- JvdW 14-07-2021
+   [Contactpersoon BOG] = convert(nvarchar(100),null),														-- JvdW 14-07-2021
+   [Verhuurder]                    = isnull(vh.Name,'Staedion'),
+   [Parkeren type huurder]         = CONVERT(varchar(255),null),
+   [Parkeren huurder]              = CONVERT(varchar(500),null)
 into Algemeen.Eenheid
 from empire_data.dbo.vw_lt_mg_oge as o
 left join empire_dwh.dbo.eenheid as e on e.id = o.lt_id
@@ -451,6 +467,8 @@ left join #daeb as daeb on
 left join #verdieping as verd on 
   verd.eenheidnr = o.nr_ and
   verd.prio = 1
+left join #verhuurder as vh on
+  vh.Eenheidnr_ = o.Nr_
 
   update  BASIS
   set     Assetmanager = isnull(nullif(c.[First Name],''),C.Initials) + ' ' + isnull(nullif(c.[Middle Name],'') + ' ','') + c.Surname
@@ -596,6 +614,62 @@ JOIN cte_reden_wijziging AS CTE_R
        ON CTE_R.Eenheidnr_ = BASIS.Eenheidnummer
 JOIN cte_contract AS CTE_C
        ON CTE_R.Eenheidnr_ = CTE_C.eenheidnr_;
+
+
+;with cte_parkeer as (
+  select 
+    sleutel,
+    o.nr_
+  from Algemeen.eenheid as ae
+  join empire_data.dbo.vw_lt_mg_oge as o on
+    o.lt_id = ae.sleutel
+  where [Eenheidtype groepering] = 'parkeren'
+),
+cte_typehuurder as (
+  select 
+    p.sleutel, 
+	hk.geliberaliseerd, 
+	c.[Customer No_] + ' ' + c.Naam as huurder,
+	ROW_NUMBER() over (partition by p.sleutel order by ae2.kalehuur desc) as prio
+  from cte_parkeer p join
+  empire_data.dbo.vw_lt_mg_contract as c on
+    c.mg_bedrijf = 'staedion' and
+    c.Eenheidnr_ = p.Nr_ and
+    GETDATE() between c.Ingangsdatum and isnull(nullif(c.einddatum,'17530101'),'99991231')
+  join empire_data.dbo.vw_lt_mg_contract as c2 on
+    c2.mg_bedrijf = c.mg_bedrijf and
+    c2.[Customer No_] = c.[Customer No_] and
+    c2.Eenheidnr_ <> c.Eenheidnr_ and
+    c2.[Customer No_] <> '' and
+    GETDATE() between c2.Ingangsdatum and isnull(nullif(c2.einddatum,'17530101'),'99991231')
+  join Algemeen.Eenheid as ae2 on
+    ae2.Eenheidnummer = c2.Eenheidnr_ and
+    ae2.Bedrijf = c2.mg_bedrijf and
+    ae2.[Eenheidtype groepering] = 'Woningen'
+  join Algemeen.Huurklasse as hk on hk.id = ae2.[Sleutel huurklasse obv kalehuur]
+)
+update ae
+set 
+  ae.[Parkeren type huurder] =  case 
+                                   when cth.geliberaliseerd = 'Geliberaliseerd' then 'Vrije sector'
+                                   when cth.geliberaliseerd = 'Bereikbaar' then 'Sociale huurwoning'
+                                   when ae.[Status eenheid] = 'Leegstand' then 'Leegstand'
+                                   when cth.Sleutel is null then 'Geen huurder van woning'
+                                   else 'Overig'
+                                end,
+  ae.[Parkeren huurder]      = cth.huurder
+
+from Algemeen.eenheid as ae
+left join cte_typehuurder as cth on
+  cth.prio = 1 and
+  cth.Sleutel = ae.sleutel
+where ae.[Eenheidtype groepering] = 'Parkeren'
+
+  
+
+  
+
+
 
 
 

@@ -11,5 +11,7 @@ CREATE TABLE [Grootboek].[Dimensiewaarden1]
 [Dimension Value ID] [int] NULL
 ) ON [PRIMARY]
 GO
+CREATE NONCLUSTERED INDEX [Bedrijf_id_Code] ON [Grootboek].[Dimensiewaarden1] ([Bedrijf_id], [Code]) ON [PRIMARY]
+GO
 CREATE NONCLUSTERED INDEX [Dimensiewaarden1_01] ON [Grootboek].[Dimensiewaarden1] ([Dimensiewaarde 1_id]) ON [PRIMARY]
 GO

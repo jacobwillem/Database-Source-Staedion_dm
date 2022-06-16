@@ -22,7 +22,8 @@ CREATE TABLE [Leegstand].[Leegstanden]
 [Laatste in maand] [tinyint] NULL,
 [Laatste in periode] [tinyint] NULL,
 [Meetwaarden_id] [int] NULL,
-[Leegstandsduur] AS (case  when [Dagen totaal tm]<(31) then '< 1 maand' else case  when [Dagen totaal tm]<(61) then '1 tot 2 maanden' else case  when [Dagen totaal tm]<(61) then '1 tot 2 maanden' else case  when [Dagen totaal tm]<(91) then '2 tot 3 maanden' else case  when [Dagen totaal tm]<(365) then '3 tot 12 maanden' else '> dan 12 maanden' end end end end end),
+[Leegstandsduur boekingsgroep] AS (case  when [Dagen boekingsgroep tm]<(31) then '< 1 maand' when [Dagen boekingsgroep tm]<(61) then '1 tot 2 maanden' when [Dagen boekingsgroep tm]<(91) then '2 tot 3 maanden' when [Dagen boekingsgroep tm]<(365) then '3 tot 12 maanden' else '> dan 12 maanden' end),
+[Leegstandsduur] AS (case  when [Dagen totaal tm]<(31) then '< 1 maand' when [Dagen totaal tm]<(61) then '1 tot 2 maanden' when [Dagen totaal tm]<(91) then '2 tot 3 maanden' when [Dagen totaal tm]<(365) then '3 tot 12 maanden' else '> dan 12 maanden' end),
 [Volgende eenheidstatus] [int] NULL
 ) ON [PRIMARY]
 GO

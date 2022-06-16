@@ -8,8 +8,8 @@ CREATE TABLE [Rapport].[Eenheden_Jur_Eig]
 [clusternummer] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [clusternaam] [varchar] (71) COLLATE Latin1_General_CI_AS NULL,
 [corpodata_type] [varchar] (20) COLLATE Latin1_General_CI_AS NULL,
-[datum_in_exploitatie] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
-[datum_uit_exploitatie] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
+[datum_in_exploitatie] [date] NULL,
+[datum_uit_exploitatie] [date] NULL,
 [In Exploitatie] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
 [Begindatum juridisch eigenaar] [date] NULL,
 [Einddatum juridisch eigenaar] [date] NULL,
@@ -24,6 +24,4 @@ CREATE TABLE [Rapport].[Eenheden_Jur_Eig]
 [Betreft] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
 [Opmerking] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
-GO
-CREATE NONCLUSTERED INDEX [i_Eenheden_Jur_Eig] ON [Rapport].[Eenheden_Jur_Eig] ([eenheidnr]) ON [PRIMARY]
 GO

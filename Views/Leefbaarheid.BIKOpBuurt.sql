@@ -2,11 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-
-
-
-
 CREATE VIEW [Leefbaarheid].[BIKOpBuurt]
 AS
 SELECT BuurtCode = ELS.BuurtCode
@@ -29,6 +24,8 @@ SELECT BuurtCode = ELS.BuurtCode
 			THEN 'BIK2020'
 		WHEN ELS.Jaar = 2020
 			THEN 'BIK2021'
+		WHEN ELS.Jaar = 2021
+			THEN 'BIK2022'
 		ELSE NULL
 		END
 	,AantalClusters = ELS.AantalClusters
@@ -202,4 +199,5 @@ LEFT OUTER JOIN staedion_dm.Leefbaarheid.LeefbaarheidsdossiersOpBuurt AS LBH ON 
 LEFT OUTER JOIN staedion_dm.Leefbaarheid.TeamscoreOpBuurt AS TS ON TS.BuurtCode = ELS.BuurtCode
 	AND TS.Jaar = ELS.Jaar
 	where ELS.Jaar >= 2016
+
 GO

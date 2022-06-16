@@ -5,7 +5,12 @@ GO
 
 
 
-CREATE view [Klanttevredenheid].[Thuisgevoel_Handmatig] as
+
+
+
+
+
+CREATE VIEW [Klanttevredenheid].[Thuisgevoel_Handmatig] AS
 /* #########################################################################################
 --------------------------------------------------------------------------------------------
 WIJZIGINGEN
@@ -79,8 +84,8 @@ EXEC sys.sp_addextendedproperty
 
 
 SELECT
-  [Datum]                                                   = convert(date,kcm.[INGEVULDE GEGEVENS]),
-  [Tijdstip]												= convert(time,kcm.[INGEVULDE GEGEVENS]),
+  [Datum]                                                   = CONVERT(DATE,kcm.[INGEVULDE GEGEVENS]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[INGEVULDE GEGEVENS]),
   [Postcode]												= kcm.postcode,
   [Sleutel eenheid]                                         = oge.lt_id,
   [Eenheidnr]												= kcm.eenheidnr,
@@ -88,64 +93,78 @@ SELECT
   kcm.clusternr,
   Clusternaam = CLUS.[Naam],
   [Voelt zich thuis]                                        = kcm.[Voelt u zich thuis in uw woning van Staedion?] ,
-  [Indicator Voelt zich thuis]                              = case when kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' then 1 else 0 end,
+  [Indicator Voelt zich thuis]                              = CASE WHEN kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' THEN 1 ELSE 0 END,
   -- 20210201 JvdW toegevoegd
   [Voelt u zich thuis in uw buurt]                          = kcm.[Voelt u zich thuis in uw buurt?] ,
-  [Indicator Voelt zich thuis in buurt]                     = case when kcm.[Voelt u zich thuis in uw buurt?] = 'Ja' then 1 else 0 end,
-  [Algemene ruimte aanwezig]                                = case when kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' then 1 else 0 end,
+  [Indicator Voelt zich thuis in buurt]                     = CASE WHEN kcm.[Voelt u zich thuis in uw buurt?] = 'Ja' THEN 1 ELSE 0 END,
+  [Algemene ruimte aanwezig]                                = CASE WHEN kcm.[Zijn er algemene ruimten rondom uw woning?]  = 'Ja' THEN 1 ELSE 0 END,
   -- [Vragen overgeslagen]                                     = case when kcm.[Zijn er nog zaken die u nog niet eerder in het onderzoek genoemd heeft waarmee Staedion uw 'thuisgevoel' kan vergroten?] = 1 then 'Ja' else 'Nee' end,
 	-- Vraag verwijderd vanaf 2020
-  [Verhuizen binnen een jaar]                               = null, 
-  [Gezinssamenstelling]                                     = null, -- 20210105 niet meer van toepassing kcm.[Wat is uw huishoudsituatie?],
-  [Financiele situatie]                                     = null, -- 20210105 niet meer van toepassing kcm.[Welke omschrijving past het beste bij de financiÃ«le situatie va],
+  [Verhuizen binnen een jaar]                               = NULL, 
+  [Gezinssamenstelling]                                     = NULL, -- 20210105 niet meer van toepassing kcm.[Wat is uw huishoudsituatie?],
+  [Financiele situatie]                                     = NULL, -- 20210105 niet meer van toepassing kcm.[Welke omschrijving past het beste bij de financiÃ«le situatie va],
 	-- Vraag verwijderd vanaf 2020
-  [Aantal personen inwonend]                                = null,
-  [Gezondheid]                                              = null, -- 20210105 niet meer van toepassing kcm.[Welke omschrijving past momenteel het beste bij de gezondheid va],
-  [Hulpafhankelijk]                                         = null, -- 20210105 niet meer van toepassing kcm.[In welke mate heeft u/uw gezin momenteel hulp of ondersteuning v],
+  [Aantal personen inwonend]                                = NULL,
+  [Gezondheid]                                              = NULL, -- 20210105 niet meer van toepassing kcm.[Welke omschrijving past momenteel het beste bij de gezondheid va],
+  [Hulpafhankelijk]                                         = NULL, -- 20210105 niet meer van toepassing kcm.[In welke mate heeft u/uw gezin momenteel hulp of ondersteuning v],
  --- [Toesteming voor contact]                                 = case when kcm.[Mag Staedion eventueel contact met u opnemen over uw antwoorden?] = 1 then 'Ja' else 'Nee' end,
-  [Suggesties]                                              = null, -- 20210105 niet meer van toepassing  -- convert(nvarchar(1000),kcm.[Namelijk:]),
+  [Suggesties]                                              = NULL, -- 20210105 niet meer van toepassing  -- convert(nvarchar(1000),kcm.[Namelijk:]),
   [Score thuisgevoel]                                       = kcm.[Welk rapportcijfer geeft u voor uw 'thuisgevoel'? Een 1 staat hi],
-  [Score woningkwaliteit]                                   = kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa],
-  [Score woningkwaliteit < 6]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa] is not null 
-																																	then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa]<6,1,0) end ,
-  [Score woningkwaliteit >= 8]                              = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa] is not null 
-																																	then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa]>=8,1,0) end,
+  [Score woningkwaliteit]                                   = kcm.[Welk rapportcijfer geeft u voor de kwaliteit van uw woning? Een ],
+  [Score woningkwaliteit < 6]                               = CASE WHEN kcm.[Welk rapportcijfer geeft u voor de kwaliteit van uw woning? Een ]  IS NOT NULL 
+																	THEN  IIF(kcm.[Welk rapportcijfer geeft u voor de kwaliteit van uw woning? Een ]<6,1,0) END ,
+  [Score woningkwaliteit >= 8]                              = CASE WHEN kcm.[Welk rapportcijfer geeft u voor de kwaliteit van uw woning? Een ] IS NOT NULL 
+																	THEN  IIF(kcm.[Welk rapportcijfer geeft u voor de kwaliteit van uw woning? Een ]>=8,1,0) END,
 	-- Vraag nader gespecificeerd vanaf 2020 
-  [Score staat keuken/badkamer/toilet]                      = null,
-  [Score staat keuken]										= null, -- 20210105 niet meer van toepassing  kcm.[De technische staat van keuken is goed#],
-  [Score staat badkamer/toilet]								= null, -- 20210105 niet meer van toepassing  kcm.[De technische staat van badkamer en toilet is goed#],
+  [Score staat keuken/badkamer/toilet]                      = NULL,
+  
+  -- 20220211 JvdW: 8 onderdelen van kwaliteit woning  
+  [Score staat keuken]										= kcm.[De kwaliteit van de keuken is goed#],			 -- 20220211 JvdW opnieuw toegevoegd
+  [Score staat badkamer/toilet]								= kcm.[De kwaliteit van de badkamer en toilet is goed#], -- 20220211 JvdW opnieuw toegevoegd
   [Score energiezuinig]                                     = kcm.[Mijn woning is voldoende energiezuinig#],
-  --[Score gehorig]                                           = kcm.[Mijn woning is niet gehorig#],
-  [Score gevoelstemperatuur]                                = null, -- 20210105 niet meer van toepassing  kcm.[De temperatuur binnen in de woning is goed (geen last van vocht,],
+  [Score gehorig]                                           = kcm.[Mijn woning is gehorig#],						 -- 20220211 JvdW opnieuw toegevoegd
+  [Score gevoelstemperatuur]                                = kcm.[Ik heb last van vocht, tocht, schimmel#],		 -- 20220211 JvdW opnieuw toegevoegd	
   [Score prijskwaliteit]                                    = kcm.[De huur die ik betaal is goed vergeleken met de kwaliteit van de],
   [Score inbraakveilig]                                     = kcm.[Ik voel me veilig in mijn woning#],
+  [Score geschikt voor lichamelijke beperking]				= kcm.[Mijn woning is geschikt om met een (lichte) lichamelijke beperki],
+
   [Score algemene ruimten]                                  = kcm.[Welk rapportcijfer geeft u Staedion voor de algemene ruimten ron],
-  [Score algemene ruimten netheid]                          = kcm.[De algemene ruimten zijn schoon en netjes#],
+  [Score algemene ruimten netheid]                          = kcm.[De algemene ruimten zijn netjes en schoon#],
   [Score algemene ruimten verlichting]                      = kcm.[De algemene ruimten hebben goede verlichting#],
   [Score algemene ruimten veilig]                           = kcm.[Ik voel me veilig in de algemene ruimten#],
   [Score buurt]                                             = kcm.[Welk rapportcijfer geeft u voor uw buurt? Een 1 staat hier voor],
   --[Score buurt overlast]                                    = kcm.[Ik heb geen overlast van mensen in mijn buurt#],
   [Score buurt netheid]                                     = kcm.[Mijn buurt is schoon en netjes#],
   [Score buurt veilig]                                      = kcm.[Ik voel mij veilig in de buurt#],
-  [Score buurt contact]                                     = kcm.[Het contact met mijn buren is prettig en voldoende#]
+  [Score buurt contact]                                     = kcm.[Het contact met mijn buren is prettig en voldoende#],
+
+
+  -- 20220214 JvdW toegevoegd tbv detail-analyse in Staedion-dashboard
+  [Thuisteam]												= kcm.[divisie],
+  [Woningtype]												= kcm.[Woningtype],
+  [Bouwjaarklasse]											= kcm.[Bouwjaarklasse],
+  Bouwbloknr												= kcm.[Bouwblok],
+  Bouwbloknaam												= kcm.[Bouwbloknaam]
+
+
 -- select * 
 FROM [empire_staedion_data].[kcm].[STN661_Ingevulde_gegevens] AS kcm
 -- from Staging.kcm as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on			
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON			
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
-left join empire_data.dbo.staedion$cluster as CLUS on 
+LEFT JOIN empire_data.dbo.staedion$cluster AS CLUS ON 
   CLUS.Nr_ = kcm.clusternr
-  where  year(convert(date,kcm.[INGEVULDE GEGEVENS])) >= 2021
+  WHERE  YEAR(CONVERT(DATE,kcm.[INGEVULDE GEGEVENS])) >= 2021
 
 UNION
 
 SELECT
-  [Datum]                                                   = convert(date,kcm.[INGEVULDE GEGEVENS]),
-  [Tijdstip]												= convert(time,kcm.[INGEVULDE GEGEVENS]),
+  [Datum]                                                   = CONVERT(DATE,kcm.[INGEVULDE GEGEVENS]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[INGEVULDE GEGEVENS]),
   [Postcode]												= kcm.postcode,
   [Sleutel eenheid]                                         = oge.lt_id,
   [Eenheidnr]												= kcm.eenheidnr,
@@ -153,37 +172,41 @@ SELECT
   kcm.clusternr,
   Clusternaam = CLUS.[Naam],
   [Voelt zich thuis]                                        = kcm.[Voelt u zich thuis in uw woning van Staedion?] ,
-  [Indicator Voelt zich thuis]                              = case when kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' then 1 else 0 end,
-  [Voelt u zich thuis in uw buurt]                          = null,
-  [Indicator Voelt zich thuis in buurt]                     = null,
-  [Algemene ruimte aanwezig]                                = case when kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' then 1 else 0 end,
+  [Indicator Voelt zich thuis]                              = CASE WHEN kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' THEN 1 ELSE 0 END,
+  [Voelt u zich thuis in uw buurt]                          = NULL,
+  [Indicator Voelt zich thuis in buurt]                     = NULL,
+  [Algemene ruimte aanwezig]                                = CASE WHEN kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' THEN 1 ELSE 0 END,
 
   -- [Vragen overgeslagen]                                     = case when kcm.[Zijn er nog zaken die u nog niet eerder in het onderzoek genoemd heeft waarmee Staedion uw 'thuisgevoel' kan vergroten?] = 1 then 'Ja' else 'Nee' end,
 	-- Vraag verwijderd vanaf 2020
-  [Verhuizen binnen een jaar]                               = null, 
-  [Gezinssamenstelling]                                     = convert(nvarchar(100), kcm.[Wat is uw huishoudsituatie?]),
+  [Verhuizen binnen een jaar]                               = NULL, 
+  [Gezinssamenstelling]                                     = CONVERT(NVARCHAR(100), kcm.[Wat is uw huishoudsituatie?]),
   [Financiele situatie]                                     = kcm.[Welke omschrijving past het beste bij de financiÃ«le situatie va],
 	-- Vraag verwijderd vanaf 2020
-  [Aantal personen inwonend]                                = null,
+  [Aantal personen inwonend]                                = NULL,
   [Gezondheid]                                              = kcm.[Welke omschrijving past momenteel het beste bij de gezondheid va],
   [Hulpafhankelijk]                                         = kcm.[In welke mate heeft u/uw gezin momenteel hulp of ondersteuning v],
  --- [Toesteming voor contact]                                 = case when kcm.[Mag Staedion eventueel contact met u opnemen over uw antwoorden?] = 1 then 'Ja' else 'Nee' end,
   [Suggesties]                                              = kcm.[Namelijk:],
   [Score thuisgevoel]                                       = kcm.[Welk rapportcijfer geeft u voor uw 'thuisgevoel'? Een 1 staat hi],
   [Score woningkwaliteit]                                   = kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa],
-  [Score woningkwaliteit < 6]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa] is not null 
-																 then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa]<6,1,0) end ,
-  [Score woningkwaliteit > 8]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa] is not null 
-																then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa]>8,1,0) end,
-	-- Vraag nader gespecificeerd vanaf 2020 
+  [Score woningkwaliteit < 6]                               = CASE WHEN kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa] IS NOT NULL 
+																 THEN  IIF(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa]<6,1,0) END ,
+  [Score woningkwaliteit > 8]                               = CASE WHEN kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa] IS NOT NULL 
+																THEN  IIF(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?Â Een 1 staa]>8,1,0) END,
+  -- Vraag nader gespecificeerd vanaf 2020 
   [Score staat keuken/badkamer/toilet]                      = kcm.[De kwaliteit van badkamer en toilet is goed#],
-  [Score staat keuken]										= null,
-  [Score staat badkamer/toilet]								= null,
+
+  -- 20220211 JvdW: 8 onderdelen van kwaliteit woning
+  [Score staat keuken]										= NULL,
+  [Score staat badkamer/toilet]								= NULL,
   [Score energiezuinig]                                     = kcm.[Mijn woning is voldoende energiezuinig#],
- -- [Score gehorig]                                           = kcm.[Mijn woning is niet gehorig#],
+  [Score gehorig]                                           = kcm.[Mijn woning is niet gehorig#],
   [Score gevoelstemperatuur]                                = kcm.[Ik heb geen last van vocht, tocht, schimmel#],
   [Score prijskwaliteit]                                    = kcm.[De huur die ik betaal is goed vergeleken met de kwaliteit van de],
   [Score inbraakveilig]                                     = kcm.[Ik voel me veilig in mijn woning#],
+  [Score geschikt voor lichamelijke beperking]				= NULL,
+
   [Score algemene ruimten]                                  = kcm.[Welk rapportcijfer geeft u Staedion voor de algemene ruimten ron],
   [Score algemene ruimten netheid]                          = kcm.[De algemene ruimten zijn schoon en netjes#],
   [Score algemene ruimten verlichting]                      = kcm.[De algemene ruimten hebben goede verlichting#],
@@ -192,27 +215,36 @@ SELECT
   --[Score buurt overlast]                                    = kcm.[Ik heb geen overlast van mensen in mijn buurt#],
   [Score buurt netheid]                                     = kcm.[Mijn buurt is schoon en netjes#],
   [Score buurt veilig]                                      = kcm.[Ik voel mij veilig in de buurt#],
-  [Score buurt contact]                                     = kcm.[Het contact met mijn buren is prettig en voldoende#]
+  [Score buurt contact]                                     = kcm.[Het contact met mijn buren is prettig en voldoende#],
 
+
+  -- 20220214 JvdW toegevoegd tbv detail-analyse in Staedion-dashboard
+  [Thuisteam]												= kcm.[divisie],
+  [Woningtype]												= NULL,
+  [Bouwjaarklasse]											= NULL,
+  Bouwbloknr												= kcm.[Bouwblok],
+  Bouwbloknaam												= kcm.[Bouwbloknaam]
+
+  
 FROM [empire_staedion_data].bik.STN661_Ingevulde_gegevens_2020 AS kcm
 -- from Staging.kcm as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
-left join empire_data.dbo.staedion$cluster as CLUS on 
+LEFT JOIN empire_data.dbo.staedion$cluster AS CLUS ON 
   CLUS.Nr_ = kcm.clusternr
-where  year(convert(date,kcm.[INGEVULDE GEGEVENS])) = 2020
+WHERE  YEAR(CONVERT(DATE,kcm.[INGEVULDE GEGEVENS])) = 2020
 
 
 UNION
 
 
 SELECT
-  [Datum]                                                   = convert(date,kcm.[INGEVULDE GEGEVENS]),
-  [Tijdstip]												= convert(time,kcm.[INGEVULDE GEGEVENS]),
+  [Datum]                                                   = CONVERT(DATE,kcm.[INGEVULDE GEGEVENS]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[INGEVULDE GEGEVENS]),
   [Postcode]												= kcm.postcode,
   [Sleutel eenheid]                                         = oge.lt_id,
   [Eenheidnr]												= kcm.eenheidnr,
@@ -220,37 +252,41 @@ SELECT
   kcm.clusternr,
   Clusternaam = CLUS.[Naam],
   [Voelt zich thuis]                                        = kcm.[Voelt u zich thuis in uw woning van Staedion?] ,
-  [Indicator Voelt zich thuis]                              = case when kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' then 1 else 0 end,
-  [Voelt u zich thuis in uw buurt]                          = null,
-  [Indicator Voelt zich thuis in buurt]                     = null,
-  [Algemene ruimte aanwezig]                                = case when kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' then 1 else 0 end,
+  [Indicator Voelt zich thuis]                              = CASE WHEN kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' THEN 1 ELSE 0 END,
+  [Voelt u zich thuis in uw buurt]                          = NULL,
+  [Indicator Voelt zich thuis in buurt]                     = NULL,
+  [Algemene ruimte aanwezig]                                = CASE WHEN kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' THEN 1 ELSE 0 END,
 
   -- [Vragen overgeslagen]                                     = case when kcm.[Zijn er nog zaken die u nog niet eerder in het onderzoek genoemd heeft waarmee Staedion uw 'thuisgevoel' kan vergroten?] = 1 then 'Ja' else 'Nee' end,
 	-- Vraag verwijderd vanaf 2020
-  [Verhuizen binnen een jaar]                               = null, 
-  [Gezinssamenstelling]                                     = convert(nvarchar(100), kcm.[Hoeveel personen wonen er in uw huis?]),
+  [Verhuizen binnen een jaar]                               = NULL, 
+  [Gezinssamenstelling]                                     = CONVERT(NVARCHAR(100), kcm.[Hoeveel personen wonen er in uw huis?]),
   [Financiele situatie]                                     = kcm.[Welke omschrijving past het beste bij de financiële situatie van],
 	-- Vraag verwijderd vanaf 2020
-  [Aantal personen inwonend]                                = null,
+  [Aantal personen inwonend]                                = NULL,
   [Gezondheid]                                              = kcm.[Welke omschrijving past momenteel het beste bij de gezondheid va],
   [Hulpafhankelijk]                                         = kcm.[In welke mate heeft u/uw gezin momenteel hulp of ondersteuning v],
  --- [Toesteming voor contact]                                 = case when kcm.[Mag Staedion eventueel contact met u opnemen over uw antwoorden?] = 1 then 'Ja' else 'Nee' end,
   [Suggesties]                                              = kcm.[Namelijk:],
   [Score thuisgevoel]                                       = kcm.[Welk rapportcijfer geeft u voor uw 'thuisgevoel'? Een 1 staat hi],
   [Score woningkwaliteit]                                   = kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat],
-  [Score woningkwaliteit < 6]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat] is not null 
-																 then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat]<6,1,0) end ,
-  [Score woningkwaliteit > 8]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat] is not null 
-																then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat]>8,1,0) end,
+  [Score woningkwaliteit < 6]                               = CASE WHEN kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat] IS NOT NULL 
+																 THEN  IIF(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat]<6,1,0) END ,
+  [Score woningkwaliteit > 8]                               = CASE WHEN kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat] IS NOT NULL 
+																THEN  IIF(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning? Een 1 staat]>8,1,0) END,
 	-- Vraag nader gespecificeerd vanaf 2020 
   [Score staat keuken/badkamer/toilet]                      = kcm.[De technische staat van keuken, badkamer en toilet is goed#],
-  [Score staat keuken]										= null,
-  [Score staat badkamer/toilet]								= null,
+
+  -- 20220211 JvdW: 8 onderdelen van kwaliteit woning
+  [Score staat keuken]										= NULL,
+  [Score staat badkamer/toilet]								= NULL,
   [Score energiezuinig]                                     = kcm.[Mijn woning is voldoende energiezuinig#],
- -- [Score gehorig]                                           = kcm.[Mijn woning is niet gehorig#],
+  [Score gehorig]                                           = kcm.[Mijn woning is niet gehorig#],
   [Score gevoelstemperatuur]                                = kcm.[De temperatuur binnen in de woning is goed (geen last van vocht,],
   [Score prijskwaliteit]                                    = kcm.[De huur die ik betaal is goed vergeleken met de kwaliteit van de],
   [Score inbraakveilig]                                     = kcm.[Ik woon in een woning die veilig is tegen inbraak#],
+  [Score geschikt voor lichamelijke beperking]				= NULL,
+
   [Score algemene ruimten]                                  = kcm.[Welk rapportcijfer geeft u Staedion voor de algemene ruimten ron],
   [Score algemene ruimten netheid]                          = kcm.[De algemene ruimten zijn netjes en schoon#],
   [Score algemene ruimten verlichting]                      = kcm.[De algemene ruimten hebben goede verlichting#],
@@ -259,19 +295,28 @@ SELECT
   --[Score buurt overlast]                                    = kcm.[Ik heb geen overlast van mensen in mijn buurt#],
   [Score buurt netheid]                                     = kcm.[Mijn buurt is schoon en netjes#],
   [Score buurt veilig]                                      = kcm.[Ik voel mij veilig in de buurt#],
-  [Score buurt contact]                                     = kcm.[Het contact met mijn buren is prettig en voldoende#]
+  [Score buurt contact]                                     = kcm.[Het contact met mijn buren is prettig en voldoende#],
+
+
+  -- 20220214 JvdW toegevoegd tbv detail-analyse in Staedion-dashboard
+  [Thuisteam]												= kcm.[divisie],
+  [Woningtype]												= NULL,
+  [Bouwjaarklasse]											= NULL,
+  Bouwbloknr												= kcm.[Bouwblok],
+  Bouwbloknaam												= kcm.[Bouwbloknaam]
+
 -- select * 
 FROM [empire_staedion_data].bik.STN661_Ingevulde_gegevens_2019 AS kcm
 -- from Staging.kcm as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
-left join empire_data.dbo.staedion$cluster as CLUS on 
+LEFT JOIN empire_data.dbo.staedion$cluster AS CLUS ON 
   CLUS.Nr_ = kcm.clusternr
-where  year(convert(date,kcm.[INGEVULDE GEGEVENS])) = 2019
+WHERE  YEAR(CONVERT(DATE,kcm.[INGEVULDE GEGEVENS])) = 2019
 
 
 
@@ -279,8 +324,8 @@ UNION
 
 
 SELECT
-  [Datum]                                                   = convert(date,kcm.[INGEVULDE GEGEVENS]),
-  [Tijdstip]												= convert(time,kcm.[INGEVULDE GEGEVENS]),
+  [Datum]                                                   = CONVERT(DATE,kcm.[INGEVULDE GEGEVENS]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[INGEVULDE GEGEVENS]),
   [Postcode]												= kcm.postcode,
   [Sleutel eenheid]                                         = oge.lt_id,
   [Eenheidnr]												= kcm.eenheidnr,
@@ -288,58 +333,70 @@ SELECT
   kcm.clusternr,
   Clusternaam = CLUS.[Naam],
   [Voelt zich thuis]                                        = kcm.[Voelt u zich thuis in uw woning van Staedion?] ,
-  [Indicator Voelt zich thuis]                              = case when kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' then 1 else 0 end,
-  [Voelt u zich thuis in uw buurt]                          = null,
-  [Indicator Voelt zich thuis in buurt]                     = null,
-  [Algemene ruimte aanwezig]                                = null, --case when kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' then 1 else 0 end,
+  [Indicator Voelt zich thuis]                              = CASE WHEN kcm.[Voelt u zich thuis in uw woning van Staedion?] = 'Ja' THEN 1 ELSE 0 END,
+  [Voelt u zich thuis in uw buurt]                          = NULL,
+  [Indicator Voelt zich thuis in buurt]                     = NULL,
+  [Algemene ruimte aanwezig]                                = NULL, --case when kcm.[Zijn er algemene ruimten rondom uw woning?  Met algemene ruimten]  = 'Ja' then 1 else 0 end,
 
   -- [Vragen overgeslagen]                                     = case when kcm.[Zijn er nog zaken die u nog niet eerder in het onderzoek genoemd heeft waarmee Staedion uw 'thuisgevoel' kan vergroten?] = 1 then 'Ja' else 'Nee' end,
 	-- Vraag verwijderd vanaf 2020
-  [Verhuizen binnen een jaar]                               = null, 
-  [Gezinssamenstelling]                                     = null, --convert(nvarchar(100), kcm.[Hoeveel personen wonen er in uw huis?]),
-  [Financiele situatie]                                     = null, --kcm.[Welke omschrijving past het beste bij de financiële situatie van],
+  [Verhuizen binnen een jaar]                               = NULL, 
+  [Gezinssamenstelling]                                     = NULL, --convert(nvarchar(100), kcm.[Hoeveel personen wonen er in uw huis?]),
+  [Financiele situatie]                                     = NULL, --kcm.[Welke omschrijving past het beste bij de financiële situatie van],
 	-- Vraag verwijderd vanaf 2020
-  [Aantal personen inwonend]                                = null,
-  [Gezondheid]                                              = null, --kcm.[Welke omschrijving past momenteel het beste bij de gezondheid va],
-  [Hulpafhankelijk]                                         = null, --kcm.[In welke mate heeft u/uw gezin momenteel hulp of ondersteuning v],
+  [Aantal personen inwonend]                                = NULL,
+  [Gezondheid]                                              = NULL, --kcm.[Welke omschrijving past momenteel het beste bij de gezondheid va],
+  [Hulpafhankelijk]                                         = NULL, --kcm.[In welke mate heeft u/uw gezin momenteel hulp of ondersteuning v],
  --- [Toesteming voor contact]                                 = case when kcm.[Mag Staedion eventueel contact met u opnemen over uw antwoorden?] = 1 then 'Ja' else 'Nee' end,
-  [Suggesties]                                              = null, --kcm.[Namelijk:],
+  [Suggesties]                                              = NULL, --kcm.[Namelijk:],
   [Score thuisgevoel]                                       = kcm.[Welk rapportcijfer geeft u voor uw "thuisgevoel", ofwel het wonen in een woning van Staedion],
   [Score woningkwaliteit]                                   = kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?],
-  [Score woningkwaliteit < 6]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?] is not null 
-																 then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?]<6,1,0) end ,
-  [Score woningkwaliteit > 8]                               = case when kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?] is not null 
-																then  iif(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?]>8,1,0) END,
+  [Score woningkwaliteit < 6]                               = CASE WHEN kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?] IS NOT NULL 
+																 THEN  IIF(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?]<6,1,0) END ,
+  [Score woningkwaliteit > 8]                               = CASE WHEN kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?] IS NOT NULL 
+																THEN  IIF(kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?]>8,1,0) END,
 	-- Vraag nader gespecificeerd vanaf 2020 
-  [Score staat keuken/badkamer/toilet]                      = null, --kcm.[De technische staat van keuken, badkamer en toilet is goed#],
-  [Score staat keuken]										= null,
-  [Score staat badkamer/toilet]								= null,
-  [Score energiezuinig]                                     = null, --kcm.[Mijn woning is voldoende energiezuinig#],
- -- [Score gehorig]                                           = kcm.[Mijn woning is niet gehorig#],
-  [Score gevoelstemperatuur]                                = null, --kcm.[De temperatuur binnen in de woning is goed (geen last van vocht,],
-  [Score prijskwaliteit]                                    = null, --kcm.[De huur die ik betaal is goed vergeleken met de kwaliteit van de],
-  [Score inbraakveilig]                                     = null, --kcm.[Ik woon in een woning die veilig is tegen inbraak#],
-  [Score algemene ruimten]                                  = null, --kcm.[Welk rapportcijfer geeft u Staedion voor de algemene ruimten ron],
-  [Score algemene ruimten netheid]                          = null, --kcm.[De algemene ruimten zijn netjes en schoon#],
-  [Score algemene ruimten verlichting]                      = null, --kcm.[De algemene ruimten hebben goede verlichting#],
-  [Score algemene ruimten veilig]                           = null, --kcm.[Ik voel me veilig in de algemene ruimten#],
-  [Score buurt]                                             = null, --kcm.[Welk rapportcijfer geeft u uw buurt? Een 1 staat hier voor zeer ],
+  [Score staat keuken/badkamer/toilet]                      = NULL, --kcm.[De technische staat van keuken, badkamer en toilet is goed#],
+
+  -- 20220211 JvdW: 8 onderdelen van kwaliteit woning
+  [Score staat keuken]										= NULL,
+  [Score staat badkamer/toilet]								= NULL,
+  [Score energiezuinig]                                     = NULL, --kcm.[Mijn woning is voldoende energiezuinig#],
+  [Score gehorig]                                           = NULL, --kcm.[Mijn woning is niet gehorig#],
+  [Score gevoelstemperatuur]                                = NULL, --kcm.[De temperatuur binnen in de woning is goed (geen last van vocht,],
+  [Score prijskwaliteit]                                    = NULL, --kcm.[De huur die ik betaal is goed vergeleken met de kwaliteit van de],
+  [Score inbraakveilig]                                     = NULL, --kcm.[Ik woon in een woning die veilig is tegen inbraak#],
+  [Score geschikt voor lichamelijke beperking]				= NULL,
+
+  [Score algemene ruimten]                                  = NULL, --kcm.[Welk rapportcijfer geeft u Staedion voor de algemene ruimten ron],
+  [Score algemene ruimten netheid]                          = NULL, --kcm.[De algemene ruimten zijn netjes en schoon#],
+  [Score algemene ruimten verlichting]                      = NULL, --kcm.[De algemene ruimten hebben goede verlichting#],
+  [Score algemene ruimten veilig]                           = NULL, --kcm.[Ik voel me veilig in de algemene ruimten#],
+  [Score buurt]                                             = NULL, --kcm.[Welk rapportcijfer geeft u uw buurt? Een 1 staat hier voor zeer ],
   --[Score buurt overlast]                                   = kcm.[Ik heb geen overlast van mensen in mijn buurt#],
-  [Score buurt netheid]                                     = null, --kcm.[Mijn buurt is schoon en netjes#],
-  [Score buurt veilig]                                      = null, --kcm.[Ik voel mij veilig in de buurt#],
-  [Score buurt contact]                                     = null --kcm.[Het contact met mijn buren is prettig en voldoende#]
+  [Score buurt netheid]                                     = NULL, --kcm.[Mijn buurt is schoon en netjes#],
+  [Score buurt veilig]                                      = NULL, --kcm.[Ik voel mij veilig in de buurt#],
+  [Score buurt contact]                                     = NULL, --kcm.[Het contact met mijn buren is prettig en voldoende#]
+
+
+  -- 20220214 JvdW toegevoegd tbv detail-analyse in Staedion-dashboard
+  [Thuisteam]												= kcm.[divisie],
+  [Woningtype]												= NULL,
+  [Bouwjaarklasse]											= NULL,
+  Bouwbloknr												= kcm.[Bouwblok],
+  Bouwbloknaam												= kcm.[Bouwbloknaam]
 -- select convert(date,kcm.[INGEVULDE GEGEVENS]),kcm.[Welk cijfer geeft u voor de kwaliteit van uw woning?],*
 FROM [empire_staedion_data].kcm.Thuisgevoel2014_okt_tm_2018_sep AS kcm
 -- from Staging.kcm as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
-left join empire_data.dbo.staedion$cluster as CLUS on 
+LEFT JOIN empire_data.dbo.staedion$cluster AS CLUS ON 
   CLUS.Nr_ = kcm.clusternr
-where  year(convert(date,kcm.[INGEVULDE GEGEVENS])) < 2019
+WHERE  YEAR(CONVERT(DATE,kcm.[INGEVULDE GEGEVENS])) < 2019
 
 
 

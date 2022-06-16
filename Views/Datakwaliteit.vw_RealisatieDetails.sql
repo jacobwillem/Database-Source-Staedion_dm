@@ -2,13 +2,59 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
 CREATE  VIEW [Datakwaliteit].[vw_RealisatieDetails]
 AS
--- JvdW 20201230 Geen ; maar - ivm output naar csv
--- JvdW 20211222 Hyperlink uitgebreid - oude statement bouwjaar laten staan, weet niet of ie ergens in gebruik is (lijkt me niet)
--- NB: als Eenheidnr gevuld is met een CO-nr dan werkt de link nog niet
--- NB: als hyperlink lege argumenten bevat zou ik beter naar een bepaalde informatie-pagina kunnen gaan, nu alleen tekst melding
+
+/* ######################################################################################
+
+-----------------------------------------------------------------------------------------
+WIJZIGINGEN
+-----------------------------------------------------------------------------------------
+JvdW 20201230 Geen ; maar - ivm output naar csv
+JvdW 20211222 Hyperlink uitgebreid - oude statement bouwjaar laten staan, weet niet of ie ergens in gebruik is (lijkt me niet)
+NB: als Eenheidnr gevuld is met een CO-nr dan werkt de link nog niet
+NB: als hyperlink lege argumenten bevat zou ik beter naar een bepaalde informatie-pagina kunnen gaan, nu alleen tekst melding
+JvdW 20220218 Vorige versie: gaf alleen de indicatoren met huidige datum, tikkie inconsequent maar er landen ook indicatoren met laaddatum gisteren
+Die misten we, vandaar cte_per_indicator_recentste_laaddatum toegevoegd, maakt 'm wel wat trager
+
+20220223 JvdW In overleg met Roelof performance issue opgepakt met cte
+
+-----------------------------------------------------------------------------------------
+TEST
+-----------------------------------------------------------------------------------------
+SELECT COUNT(DISTINCT id_samengesteld) FROM staedion_dm.Datakwaliteit.vw_Indicator
+SELECT COUNT(DISTINCT id_samengesteld) FROM staedion_dm.Datakwaliteit.[vw_RealisatieDetails]
+
+###################################################################################### */
+
+/*
+NB: werkt veel te traag
+WITH cte_per_indicator_recentste_laaddatum AS
+
+	(	SELECT R1.[id_samengesteld], R1.Laaddatum, [Aantal] = COUNT(*)
+		FROM Datakwaliteit.RealisatieDetails AS R1
+		WHERE  R1.Laaddatum = (
+				SELECT MAX(R2.[Laaddatum])
+				FROM Datakwaliteit.Realisatie AS R2
+				WHERE R2.[id_samengesteld] = R1.[id_samengesteld] 
+				)
+		GROUP BY R1.[id_samengesteld],R1.Laaddatum
+		)
+*/
+-- Afzonderlijk ophalen gaat een stuk sneller
+WITH dat ([id_samengesteld], Laaddatum)
+AS (SELECT rea.[id_samengesteld], MAX(rea.[Laaddatum])
+	FROM Datakwaliteit.Realisatie rea
+	WHERE rea.[Laaddatum] <= CONVERT(DATE, GETDATE())
+	GROUP BY rea.[id_samengesteld]),
+cte_per_indicator_recentste_laaddatum ([id_samengesteld], Laaddatum, [Aantal])
+AS (SELECT det.[id_samengesteld], det.Laaddatum, COUNT(*)
+	FROM dat INNER JOIN Datakwaliteit.RealisatieDetails det 
+	ON dat.[id_samengesteld] = det.[id_samengesteld] AND dat.[Laaddatum] = det.[Laaddatum]
+	GROUP BY det.[id_samengesteld], det.Laaddatum)
+
+
+
 SELECT	I.id_samengesteld
 		,R.id
 		,[Sleutel entiteit] = CASE I_parent.[Omschrijving]
@@ -20,6 +66,11 @@ SELECT	I.id_samengesteld
 									--when 'Contracten' then coalesce(R.Eenheidnr,'OGEH-?') + '-' +  coalesce(R.Klantnr,'KLNT-?') + '-' + coalesce(convert(nvarchar(20), R.datIngang, 105),'ingangsdatum ?')
 									WHEN 'Contracten' THEN COALESCE(NULLIF(R.[Eenheidnr],''),'OGEH-?') + '-' +  COALESCE(NULLIF(R.[Klantnr],''),'KLNT-?')
 									WHEN 'Medewerker' THEN R.[fk_medewerker_id]
+									when 'Collectief object' then r.[Eenheidnr]
+									when 'Collectief cluster object' then r.[Eenheidnr]
+									when 'Bouwblok' then r.[Eenheidnr]
+									when 'FT Cluster' then r.[Eenheidnr]
+									when 'Einde exploitatie' then r.[Eenheidnr]
 									ELSE 'Volgt - zie vw_RealisatieDetails'
 								END
 	   ,Entiteit = I_parent.Omschrijving
@@ -35,10 +86,10 @@ SELECT	I.id_samengesteld
 	   ,R.datEinde
 	   ,Aantal = 1
 	   ,Hyperlink = CASE I_parent.[Omschrijving]
-									WHEN 'Eenheid' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.='+R.[Eenheidnr]+'', 'view')+'">'+R.[Eenheidnr]+'</a>','< Link niet op kunnen halen - lege argumenten >')
-									WHEN 'Klant' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 21, 'Nr.='+R.[Klantnr]+'', 'view')+'">'+R.[Klantnr]+'</a>','< Link niet op kunnen halen - lege argumenten >')
-									WHEN 'Relaties' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 5050, 'No.='+R.Relatienr+'', 'view')+'">'+R.Relatienr+'</a>','< Link niet op kunnen halen - lege argumenten >')
-									WHEN 'Contracten' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 11024012, 'Soort=1,Eenheidnr.='+R.[Eenheidnr]+'', 'view')+'">'+R.[Eenheidnr]+'</a>','< Link niet op kunnen halen - lege argumenten >')
+									WHEN 'Eenheid' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.='+R.[Eenheidnr]+'', 'view')+'">', NULL) -- R.[Eenheidnr] '< Link niet op kunnen halen - lege argumenten >'
+									WHEN 'Klant' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 21, 'Nr.='+R.[Klantnr]+'', 'view')+'">', NULL) --R.[Klantnr]
+									WHEN 'Relaties' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 5050, 'No.='+R.Relatienr+'', 'view')+'">', NULL) --R.Relatienr
+									WHEN 'Contracten' THEN COALESCE('<a href="'+empire_staedion_data.empire.fnEmpireLink('Staedion', 11024012, 'Soort=1,Eenheidnr.='+R.[Eenheidnr]+'', 'view')+'">', NULL) --R.[Eenheidnr]
 									ELSE CASE WHEN I.Omschrijving = 'bouwjaar' THEN empire_staedion_data.empire.fnEmpireLink('Staedion', 11024009, 'Nr.=''' + R.Eenheidnr + '''', 'view')
 										ELSE R.Hyperlink END
 										END
@@ -54,6 +105,9 @@ JOIN Datakwaliteit.[Indicator] AS I_parent
        ON I_parent.[id] = I.parent_id
 JOIN [staedion_dm].[Datakwaliteit].Indicatordimensie AS DIM
        ON DIM.id = R.fk_indicatordimensie_id
+JOIN cte_per_indicator_recentste_laaddatum AS LAADDATUM
+ON LAADDATUM.id_samengesteld = R.id_samengesteld
+AND LAADDATUM.Laaddatum = R.Laaddatum
 LEFT JOIN [Datakwaliteit].[Uitzondering] AS UIT
 		ON UIT.[sleutel_entiteit] = CASE I_parent.[Omschrijving]
 											WHEN 'Eenheid' THEN R.[Eenheidnr]
@@ -63,12 +117,15 @@ LEFT JOIN [Datakwaliteit].[Uitzondering] AS UIT
 											--when 'Contracten' then coalesce(R.Eenheidnr,'OGEH-?') + '-' +  coalesce(R.Klantnr,'KLNT-?') + '-' + coalesce(convert(nvarchar(20), R.datIngang, 105),'ingangsdatum ?')
 											WHEN 'Contracten' THEN COALESCE(NULLIF(R.[Eenheidnr],''),'OGEH-?') + '-' +  COALESCE(NULLIF(R.[Klantnr],''),'KLNT-?')
 											WHEN 'Medewerker' THEN R.[fk_medewerker_id]
+											when 'Collectief object' then r.[Eenheidnr]
+											when 'Collectief cluster object' then r.[Eenheidnr]
+											when 'Bouwblok' then r.[Eenheidnr]
 											ELSE 'Volgt - zie vw_RealisatieDetails'
 										END
 		AND UIT.[id_samengesteld] = I.[id_samengesteld]
 		AND GETDATE() BETWEEN UIT.[Startdatum] AND COALESCE(DATEADD(DAY, 1, UIT.[Einddatum]), DATEADD(DAY, 1, GETDATE()))
 WHERE I.[Zichtbaar] = 1
 AND UIT.[id] IS NULL
-AND R.Laaddatum = (SELECT MAX(Laaddatum) FROM Datakwaliteit.RealisatieDetails WHERE Laaddatum <=GETDATE() )  -- per abuis kwam 1-7 lopend jaar ook voor ?!
+--AND R.Laaddatum >= (SELECT DATEADD(d,-4,MAX(Laaddatum)) FROM Datakwaliteit.RealisatieDetails WHERE Laaddatum <=GETDATE() )  -- per abuis kwam 1-7 lopend jaar ook voor ?!
 --and I.omschrijving like '%bouwjaar%'
 GO

@@ -48,3 +48,5 @@ CREATE TABLE [Onderhoud].[Onderhoudsverzoek]
 [Communicatiewijze_id] [int] NULL
 ) ON [PRIMARY]
 GO
+CREATE CLUSTERED INDEX [cidx_onderhoudsverzoek_Onderhoudsverzoek_id_bedrijf_id] ON [Onderhoud].[Onderhoudsverzoek] ([Bedrijf_id], [Onderhoudsverzoek_id]) ON [PRIMARY]
+GO

@@ -4,15 +4,15 @@ SET ANSI_NULLS ON
 GO
 
 
-
-CREATE procedure [dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig](
-  @peildatum date = '20191231', @onderwerp nvarchar(100), @filter nvarchar(100)
+CREATE PROCEDURE [dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig](
+  @peildatum DATE = '20220131', @onderwerp NVARCHAR(100), @filter NVARCHAR(100)
 )
-as
+AS
 /* #################################################################################################################
-exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '20210430', '%tevred%reparatieverzoek%', ''
+exec staedion_dm.[dbo].[sp_load_kpi_kcm_dagelijks_onderhoud_handmatig] '20220131', '%tevred%reparatieverzoek%', ''
 
 select * from empire_staedion_Data.etl.LogboekMeldingenProcedures order by Begintijd desc
+empire_staedion_Data.etl.LogboekMeldingenProcedures 
 
 select fk_indicator_id,  max(Datum), avg(waarde*1.00),count(*) from staedion_dm.Dashboard.[RealisatieDetails] where fk_indicator_id between 1000 and 1006 and year(datum) = 2020 and month(datum) = 1 group by fk_indicator_id
 select fk_indicator_id,  max(Datum), avg(waarde*1.00),count(*) from staedion_dm.Dashboard.[Realisatie] where fk_indicator_id between 1000 and 1006 and year(datum) = 2020 and month(datum) = 1 group by fk_indicator_id
@@ -24,24 +24,29 @@ WIJZIGINGEN
 ################################################################################################################# */
 BEGIN TRY
 
-	set nocount on
+	SET NOCOUNT ON
 
 	-- Diverse variabelen
-	declare @start as datetime
-	declare @finish as datetime
-	declare @fk_indicator_id as smallint
-	declare @AantalRecords as int
-	declare @Bericht as nvarchar(255)
-	DECLARE @Bron nvarchar(100) =  OBJECT_NAME(@@PROCID)
-	set	@start =current_timestamp
+	DECLARE @start AS DATETIME
+	DECLARE @finish AS DATETIME
+	DECLARE @fk_indicator_id AS SMALLINT
+	DECLARE @AantalRecords AS INT
+	DECLARE @Bericht AS NVARCHAR(255)
+	DECLARE @Bron NVARCHAR(100) =  OBJECT_NAME(@@PROCID)
+	SET	@start =CURRENT_TIMESTAMP
 
-	select @fk_indicator_id = min(id) from  [Dashboard].[Indicator] where lower([Omschrijving]) like @onderwerp
+	SELECT @fk_indicator_id = MIN(id) FROM  [Dashboard].[Indicator] WHERE LOWER([Omschrijving]) LIKE @onderwerp
 
-	delete from Dashboard.[RealisatieDetails] where fk_indicator_id = @fk_indicator_id and datum between dateadd(d, 1-day(@peildatum), @peildatum) and eomonth(@peildatum)
+	DELETE FROM Dashboard.[RealisatieDetails] WHERE fk_indicator_id = @fk_indicator_id AND datum BETWEEN DATEADD(d, 1-DAY(@peildatum), @peildatum) AND EOMONTH(@peildatum)
 	-- JvdW 20210201
-	and year(Datum) >= 2021
+	AND YEAR(Datum) >= 2022
 
-	insert into [Dashboard].[RealisatieDetails]
+	SET @AantalRecords = @@rowcount;	
+	SET @Bericht = 'Stap: wissen RealisatieDetails ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+
+	INSERT INTO [Dashboard].[RealisatieDetails]
 		([Datum]
 		,[Waarde]
 		,[Laaddatum]
@@ -54,19 +59,25 @@ BEGIN TRY
 		where Datum between dateadd(d, 1-day(@peildatum), @peildatum) and @peildatum and
 		(Bron = @filter or @filter = '')
 		-- JvdW 20210201
-		and year(Datum) >= 2021
+		and year(Datum) >= 2022
 		
-	--SET @AantalRecords = @@rowcount;	
-	--SET @Bericht = 'Stap: ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
-	--SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
-	--EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+	SET @AantalRecords = @@rowcount;	
+	SET @Bericht = 'Stap: Vullen RealisatieDetails' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
 
 	-- Samenvatting opvoeren tbv dashboards
 
 	delete from Dashboard.[Realisatie] where fk_indicator_id = @fk_indicator_id and datum between dateadd(d, 1-day(@peildatum), @peildatum) and eomonth(@peildatum)
 	-- JvdW 20210201
-	and year(Datum) >= 2021
+	and year(Datum) >= 2022
 	;
+	SET @AantalRecords = @@rowcount;	
+	SET @Bericht = 'Stap: wissen Realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+
+
 	insert into Dashboard.[Realisatie] (
 		fk_indicator_id,
 		Datum,
@@ -77,13 +88,13 @@ BEGIN TRY
 		from Dashboard.[RealisatieDetails] det
 		where det.fk_indicator_id = @fk_indicator_id and det.datum between dateadd(d, 1-day(@peildatum), @peildatum) and @peildatum
 				-- JvdW 20210201
-		and year(Datum) >= 2021
+		and year(Datum) >= 2022
 		group by det.fk_indicator_id
 
-	--SET @AantalRecords = @@rowcount;	
-	--SET @Bericht = 'Stap: realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
-	--SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
-	--EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
+	SET @AantalRecords = @@rowcount;	
+	SET @Bericht = 'Stap: vullen realisatie ' + replace(@Onderwerp,'%',' ' ) + ' - records: ';
+	SET @Bericht = @Bericht + format(@AantalRecords, 'N0');
+	EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht, @Bron;
 
 	set	@finish = current_timestamp
 	

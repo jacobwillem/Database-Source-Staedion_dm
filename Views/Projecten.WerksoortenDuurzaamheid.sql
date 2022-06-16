@@ -10,7 +10,8 @@ GO
 
 
 
-CREATE view [Projecten].[WerksoortenDuurzaamheid] as
+
+CREATE VIEW [Projecten].[WerksoortenDuurzaamheid] AS
 
 /* #########################################################################################
 
@@ -97,7 +98,7 @@ SELECT DISTINCT Projectnummer = PROJ.Nr_
        ,[Soort ingreep] = CASE 
               WHEN (
                             BR.Werksoort = 'P31010'
-                            OR upper(BR.Omschrijving) LIKE '%HR+%'
+                            OR UPPER(BR.Omschrijving) LIKE '%HR+%'
                             )
                      THEN 'HR-glas'
               WHEN (
@@ -109,7 +110,8 @@ SELECT DISTINCT Projectnummer = PROJ.Nr_
                             )
                      THEN 'HR-toestel'
               WHEN (
-							BR.Werksoort = 'P61010'
+	                -- JvdW P61011 moet er volgens mij bij
+							BR.Werksoort IN ( 'P61010' , 'P61011')
 							OR BR.Omschrijving LIKE '%PV panelen%'
 							OR BR.Omschrijving LIKE '%PV-panelen%'
 							OR BR.Omschrijving LIKE '%PV paneel%'
@@ -157,7 +159,7 @@ WHERE PROJ.Nr_ LIKE 'PLOH%'
 				-- HR-glas:
 				(
 				BR.Werksoort = 'P31010'
-				OR upper(BR.Omschrijving) LIKE '%HR+%'
+				OR UPPER(BR.Omschrijving) LIKE '%HR+%'
 				) 
 					OR
 				-- HR-toestel:
@@ -169,7 +171,8 @@ WHERE PROJ.Nr_ LIKE 'PLOH%'
 					OR
 				-- PV-paneel:
 				(
-                BR.Werksoort = 'P61010' 
+                -- JvdW P61011 moet er volgens mij bij
+				BR.Werksoort IN ( 'P61010' , 'P61011')
 				OR BR.Omschrijving LIKE '%PV panelen%'
 				OR BR.Omschrijving LIKE '%PV-panelen%'
 				OR BR.Omschrijving LIKE '%PV paneel%'

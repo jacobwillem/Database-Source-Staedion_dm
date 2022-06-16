@@ -2,11 +2,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE  procedure [Datakwaliteit].[sp_overig] 
-				(@Laaddatum as date = null, 
-				 @Entiteit as nvarchar(50) = 'Proces Huuraanpassing',
-				 @Attribuut as nvarchar(255) = 'Vinkje beeindigd contractregel',
-				 @fk_indicatordimensie_id as int = null)  -- overig  
+CREATE  PROCEDURE [Datakwaliteit].[sp_overig] 
+				(@Laaddatum AS DATE = NULL, 
+				 @Entiteit AS NVARCHAR(50) = 'Proces Huuraanpassing',
+				 @Attribuut AS NVARCHAR(255) = 'Vinkje beeindigd contractregel',
+				 @fk_indicatordimensie_id AS INT = NULL)  -- overig  
 AS
 /* ###################################################################################################
 BETREFT     : Procedure die door attributen in Datakwaliteit.Indicator aangeroepen kan worden om [atakwaliteit].Details mee te vullen
@@ -93,7 +93,7 @@ EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] 'staedion_dm', 'Da
 BEGIN TRY
 
   -- Diverse variabelen
-		set nocount on;
+		SET NOCOUNT ON;
 
 		declare @start as datetime;
 		declare @finish as datetime;
@@ -1166,40 +1166,7 @@ BEGIN TRY
 
 		
 						END
---------------------------------------------------------------------------------------------------------------
-				if @Attribuut = 'Afwijking naam huurder contractregel vs huishoudkaart'	 -- 6025
 
-					BEGIN
-								insert into Datakwaliteit.RealisatieDetails ( Omschrijving ,Teller, Waarde,  Klantnr,Laaddatum,fk_indicator_id,fk_indicatordimensie_id)
-								SELECT Omschrijving =  ' Prioriteit = ' + COALESCE(BASIS.Prioriteit,'?') +
-															' Naam huishoudkaart = ' + BASIS.[Huurdernaam huishoudkaart] +  
-															' Naam contractkaart = ' + BASIS.[Huurdernaam contractkaart] +
-															' Klantnr = ' + BASIS.Huurdernr 
-											 ,1
-											 ,1
-											 ,BASIS.Huurdernr
-											 ,@Laaddatum
-											 ,@fk_indicator_id
-											 ,@fk_indicatordimensie_id
-								-- select select	count(*), count(distinct Huurdernr), [Huurdernaam contractkaart], [Huurdernaam huishoudkaart], Prioriteit
-								FROM	staedion_dm.Datakwaliteit.[vw_NaamgevingKlantenHuishoudkaart] AS BASIS
-								;
-
-								SET @AantalRecords = @@ROWCount
-
-								SET @bericht = 'Attribuut '+ @Attribuut + ' - RealisatieDetails toegevoegd: ' + format(@AantalRecords, 'N0');
-								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
-
-								insert into Datakwaliteit.Realisatie (Waarde,  Laaddatum, fk_indicator_id , fk_indicatordimensie_id)
-								select @AantalRecords, @Laaddatum , @fk_indicator_id, @fk_indicatordimensie_id
-								;
-
-								SET @bericht = 'Attribuut '+ @Attribuut + ' - Realisatie toegevoegd: ' + format(@@ROWCOUNT, 'N0');
-								EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;				
-
-		
-						END
---------------------------------------------------------------------------------------------------------------
 
 		end
 
@@ -1236,8 +1203,4 @@ BEGIN TRY
 						,ERROR_MESSAGE() 
 		
 	END CATCH
-
-
-
-
 GO

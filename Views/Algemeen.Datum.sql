@@ -5,6 +5,8 @@ GO
 
 
 
+
+
 CREATE VIEW [Algemeen].[Datum]
 /* ##############################################################################################################
 Van Ruben Stolk tbv div PBI-rapportages voor O&V
@@ -21,6 +23,8 @@ AS
                                                         WHEN d.last_loading_day = 0 THEN 'Nee'
                                                         ELSE NULL
                                                       END,
+    [Is toekomstige datum]                          = case when d.datum > GETDATE() then 'Ja' else 'Nee' end,
+    [Is voorbij huidig jaar]                        = case when year(d.datum) > year(GETDATE()) then 'Ja' else 'Nee' end,
     [Jaar]                                          = d.jaar,
 
     [Tertaal code]                                  = d.tertaal,
@@ -44,6 +48,8 @@ AS
     [Maand van het jaar code]                       = d.maand_vh_jaar,
     [Maand van het jaar]                            = d.maand_vh_jaar_name,
     [Maand van het jaar kort]                       = d.maand_vh_jaar_name_short,
+	[Maand van het jaar kort DESC]					= d.maand_vh_jaar_name_short,
+	[Maand van het jaar kort SORT]					= (-1 * d.maand_vh_jaar),
 
     [Jaar relatief code]                            =      d.jaar_relatief,
     [Jaar relatief sortering aflopend]              = -1 * d.jaar_relatief,
@@ -121,6 +127,8 @@ AS
                                                         WHEN d.dag_relatief         >  0 THEN 'Laaddag + '              + CONVERT(VARCHAR(11), ABS(d.dag_relatief))
                                                       END,
 	[Week van het jaar code]													= d.week_value,
+	[Week van het jaar code DESC]												= d.week_value,
+	[Week van het jaar code SORT]												= (-1 * d.week_value),
 	-- JvdW 20200428 toegevoegd 
 	[Toegerekende posten bijgewerkt tot]							= (
 																											SELECT MAX([Posting Date])

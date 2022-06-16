@@ -5,19 +5,21 @@ GO
 
 
 
-CREATE view [Leegstand].[Leegstand meetwaarden]
-as
-select
-  [Datum]                                 = t.datum,
-  [Sleutel eenheid]                       = dl.fk_eenheid_id,
-  [Derving netto]                         = dl.dervingnetto / convert(numeric(12,5),day(dl.datum)),
-  [Derving bruto]                         = dl.dervingbruto / convert(numeric(12,5),day(dl.datum)),
-	[leegstandsdagen]												= dl.dagenleegstand / convert(numeric(12,5),day(dl.datum))
-from empire_dwh.dbo.d_leegstand dl
-cross join empire_logic..dlt_loading_day ld
-join empire_dwh.dbo.tijd t on 
-  t.maand_value = month(dl.datum) and
-  t.jaar = year(dl.datum) and
-  t.datum between dateadd(mm,-13, ld.loading_day) and ld.loading_day
+
+CREATE VIEW [Leegstand].[Leegstand meetwaarden]
+AS SELECT [Datum] = t.datum,
+       [Sleutel eenheid] = dl.fk_eenheid_id,
+       [Derving netto] = dl.dervingnetto / CONVERT(NUMERIC(12, 5), DAY(dl.datum)),
+       [Derving bruto] = dl.dervingbruto / CONVERT(NUMERIC(12, 5), DAY(dl.datum)),
+       [leegstandsdagen] = dl.dagenleegstand / CONVERT(NUMERIC(12, 5), DAY(dl.datum))
+	   --,       [reden leegstand] = dl.fk_redenleegstand_id  -- JvdW tijdelijk tbv 21 12 1070 
+-- select top 10 * 
+FROM empire_dwh.dbo.d_leegstand dl
+    CROSS JOIN empire_logic..dlt_loading_day ld
+    JOIN empire_dwh.dbo.tijd t
+        ON t.maand_value = MONTH(dl.datum)
+           AND t.jaar = YEAR(dl.datum)
+           AND t.datum
+           BETWEEN DATEADD(mm, -13, ld.loading_day) AND ld.loading_day;
 
 GO

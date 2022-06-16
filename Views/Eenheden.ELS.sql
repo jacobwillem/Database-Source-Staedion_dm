@@ -2,12 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-
-
-
-
-
 CREATE view [Eenheden].[ELS]
 as
 with cte_snapshots as (
@@ -120,6 +114,9 @@ select
 [BAG huis letter]                                    = els.[BAG_huis_letter],
 [BAG postcode]                                       = els.[BAG_postcode],
 [BAG plaats]                                         = els.[BAG_plaats],
+/*
+[BAG bouwjaar]										 = els.[BAG bouwjaar],
+*/
 [Type monument]                                      = els.[type monument],
 [Beschermd stadsgezicht]                             = els.[beschermd stadsgezicht],
 [Studentenwoning]                                    = els.[Studentenwoning],
@@ -160,12 +157,14 @@ select
 [Juridisch eigenaar]                                 = els.[Juridisch eigenaar],
 [VvE vertegenwoordiger]                              = els.[VvE vertegenwoordiger],
 [Thuisteam]                                          = els.[Thuisteam],
-[Leegwaarde 31-12-2018]                              = els.[Leegwaarde 31-12-2018],
-[NettoMarktwaardeVerhuurdeStaat 31-12-2018]          = els.[NettoMarktwaardeVerhuurdeStaat 31-12-2018],
-[Markthuur 31-12-2018]                               = els.[Markthuur 31-12-2018],
-[Markthuur 31-12-2019]                               = els.[Markthuur 31-12-2019],
-[NettoMarktwaardeVerhuurdeStaat 31-12-2019]          = els.[NettoMarktwaardeVerhuurdeStaat 31-12-2019],
-[Leegwaarde 31-12-2019]                              = els.[Leegwaarde 31-12-2019],
+-- kolommen die moeten worden vervangen door de nieuwe algemenere kolomnamen
+	[Leegwaarde 31-12-2018]                              = els.[Leegwaarde 31-12-2018],
+	[NettoMarktwaardeVerhuurdeStaat 31-12-2018]          = els.[NettoMarktwaardeVerhuurdeStaat 31-12-2018],
+	[Markthuur 31-12-2018]                               = els.[Markthuur 31-12-2018],
+	[Markthuur 31-12-2019]                               = els.[Markthuur 31-12-2019],
+	[NettoMarktwaardeVerhuurdeStaat 31-12-2019]          = els.[NettoMarktwaardeVerhuurdeStaat 31-12-2019],
+	[Leegwaarde 31-12-2019]                              = els.[Leegwaarde 31-12-2019],
+--
 [Leegstand]                                          = els.[Leegstand],
 [VvE (code) Extern]                                  = els.[VvE (code) Extern],
 [VvE-beheerder]                                      = els.[VvE-beheerder],
@@ -173,15 +172,58 @@ select
 [Huurbeleid]                                         = els.[Huurbeleid],
 [Mutatie-huur]                                       = els.[Mutatie-huur],
 [Toilet in badkamer]                                 = els.[Toilet in badkamer],
-[Leegwaarde 31-12-2020]                              = els.[Leegwaarde 31-12-2020],
-[Marktwaarde in verhuurde staat 31-12-2020]          = els.[Marktwaarde in verhuurde staat 31-12-2020],
-[Markthuur (maand) 31-12-2020]                       = els.[Markthuur (maand) 31-12-2020],
-[Beleidswaarde 31-12-2020]                           = els.[Beleidswaarde 31-12-2020],
+-- kolommen die moeten worden vervangen door de nieuwe algemenere kolomnamen
+	[Leegwaarde 31-12-2020]                              = els.[Leegwaarde 31-12-2020],
+	[Marktwaarde in verhuurde staat 31-12-2020]          = els.[Marktwaarde in verhuurde staat 31-12-2020],
+	[Markthuur (maand) 31-12-2020]                       = els.[Markthuur (maand) 31-12-2020],
+	[Beleidswaarde 31-12-2020]                           = els.[Beleidswaarde 31-12-2020],
+
+--
 [GO NEN2580 marktwaardering]                         = els.[GO NEN2580 marktwaardering],
 [Adres]                                              = els.[Adres]
+/* Nog toe te voegen kolommen aan de view
+,
+[Gebruiksoppervlakte conform NTA 8800]				 = els.[Gebruiksoppervlakte conform NTA 8800],
+[Energielabel conform NTA8800]						 = els.[Energielabel conform NTA8800],
+[Gem. ruimte in berekening]							 = els.[Gem. ruimte in berekening],
+[Oppervlakte berekend]								 = els.[Oppervlakte berekend],
+[Punten oppervlakte]								 = els.[Punten oppervlakte],
+[(Eigen) Verwarmde vertrekken]						 = els.[(Eigen) Verwarmde vertrekken],
+[Punten oppervlakte verwarmd]						 = els.[Punten oppervlakte verwarmd],
+[Thermonstatische regelknoppen]						 = els.[Thermonstatische regelknoppen],
+[Punten thermonstatische regelknoppen]				 = els.[Punten thermonstatische regelknoppen],
+[Gasaansluiting]									 = els.[Gasaansluiting],
+[Punten gasaansluiting]								 = els.[Punten gasaansluiting],
+[Gemeenschappelijke Keuken]							 = els.[Gemeenschappelijke Keuken],
+[Punten gem. keuken]								 = els.[Punten gem. keuken],
+[Gemeenschappelijke douche/bad]						 = els.[Gemeenschappelijke douche/bad],
+[Punten gem. douche/bad]							 = els.[Punten gem. douche/bad],
+[Gemeenschappelijke Wastafel]						 = els.[Gemeenschappelijke Wastafel],
+[Punten gem. wastafel]								 = els.[Punten gem. wastafel],
+[Gemeenschappelijk Toilet]							 = els.[Gemeenschappelijk Toilet],
+[Punten gem. toilet]								 = els.[Punten gem. toilet],
+[Gemeenschappelijke buitenruimte]					 = els.[Gemeenschappelijke buitenruimte],
+[Punten gem. buitenruimte]							 = els.[Punten gem. buitenruimte],
+[Fietsenberging]									 = els.[Fietsenberging],
+[Punten fietsenberging]								 = els.[Punten fietsenberging],
+[(Aftrek) Vloeropp <10 m²]							 = els.[(Aftrek) Vloeropp <10 m²],
+[(Aftrek) Overlast]									 = els.[(Aftrek) Overlast],
+[(Aftrek) Toilet indirect bereikbaar]				 = els.[(Aftrek) Toilet indirect bereikbaar],
+[(Aftrek) Verdieping > 4 zonder lift]				 = els.[(Aftrek) Verdieping > 4 zonder lift],
+[(Aftrek) Ramen <0,75 m²]							 = els.[(Aftrek) Ramen <0,75 m²],
+[(Aftrek) Raam hoger 1,6 m]							 = els.[(Aftrek) Raam hoger 1,6 m],
+[(Aftrek) Gevel <5 m]								 = els.[(Aftrek) Gevel <5 m],
+[(Aftrek) Niet koken]								 = els.[(Aftrek) Niet koken],
+-- nieuwe kolommen ter vervanging van de kolommen met namen waarin de peildatum is opgenomen
+[Peildatum beleidswaarden]							 = els.[Peildatum beleidswaarden],
+[Leegwaarde]										 = els.[Leegwaarde],
+[Netto marktwaarde verhuurde staat]					 = els.[Netto marktwaarde verhuurde staat],
+[Markthuur (maand)]									 = els.[Markthuur (maand)],
+[Beleidswaarde]										 = els.[Beleidswaarde]
+
+*/
 FROM [empire_staedion_data].[dbo].[ELS] as els
 join cte_snapshots as cs on
   cs.peildatum = els.datum_gegenereerd
 cross join cte_ls
-
 GO

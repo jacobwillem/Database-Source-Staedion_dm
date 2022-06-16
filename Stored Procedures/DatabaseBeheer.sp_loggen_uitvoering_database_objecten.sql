@@ -129,4 +129,7 @@ begin
 end
 
 
+
+GO
+GRANT EXECUTE ON  [DatabaseBeheer].[sp_loggen_uitvoering_database_objecten] TO [public]
 GO

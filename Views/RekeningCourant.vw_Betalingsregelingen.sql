@@ -2,6 +2,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
+
 CREATE VIEW [RekeningCourant].[vw_Betalingsregelingen]
 AS
 /* #########################################################################################################################################
@@ -13,7 +14,7 @@ DOEL	View over onderliggende tabel heen ter vergemakkelijking van PBI-rapportage
 WIJZIGINGEN
 --------------------------------------------------------------------------------------------------------------------------------------------
 20210920 JvdW 
-
+20211227 Aangemaakt door toegevoegd
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 TESTEN
@@ -179,7 +180,7 @@ SELECT DISTINCT BETR.Peildatum
        ,BETR.[Afsluitreden]
        ,BETR.[Klant status]
        ,BETR.Rapportagestatus_id
-       ,[Huidige status klant] = iif(CONTR.[Customer No_] IS NULL, 'Vertrokken', 'Zittend')
+       ,[Huidige status klant] = IIF(CONTR.[Customer No_] IS NULL, 'Vertrokken', 'Zittend')
        ,Beginstand = IIF(BETR.Rapportagestatus_id IN (
                      2
                      ,3
@@ -198,7 +199,7 @@ SELECT DISTINCT BETR.Peildatum
                      ), 1, 0)
 			 ,Termijnen
        ,[Categorie termijnen] = CASE 
-              WHEN Coalesce(Termijnen,0) <= 0
+              WHEN COALESCE(Termijnen,0) <= 0
                      THEN 'geen termijnen'
               ELSE CASE 
                             WHEN Termijnen <= 1
@@ -219,7 +220,7 @@ SELECT DISTINCT BETR.Peildatum
                             END
               END
        ,[Categorie termijnen sortering] = CASE 
-              WHEN Coalesce(Termijnen,0) <= 0
+              WHEN COALESCE(Termijnen,0) <= 0
                      THEN 1
               ELSE CASE 
                             WHEN Termijnen <= 1
@@ -239,6 +240,7 @@ SELECT DISTINCT BETR.Peildatum
                                           END
                             END
               END
+			  ,BETR.[Aangemaakt door]
 -- select count(*), count(distinct convert(nvarchar(20),Peildatum,105) + '|' + Betalingsregelingnr)
 -- select BETR.*
 FROM [staedion_dm].[RekeningCourant].[Betalingsregelingen] AS BETR

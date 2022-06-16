@@ -11,8 +11,12 @@ CREATE TABLE [Eenheden].[Eigenschappen]
 [Postcode] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Plaats] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
 [Gemeente] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
+[Wijk Code] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Wijk] [nvarchar] (85) COLLATE Latin1_General_CI_AS NULL,
+[CBS buurt] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Buurt] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
+[CBS Wijk Code] [nvarchar] (6) COLLATE Latin1_General_CI_AS NULL,
+[CBS Buurt Code] [nvarchar] (8) COLLATE Latin1_General_CI_AS NULL,
 [Betreft] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
 [Eenheidstatus_id] [int] NULL,
 [Datum in exploitatie] [date] NULL,
@@ -27,6 +31,7 @@ CREATE TABLE [Eenheden].[Eigenschappen]
 [BAG huisnummer letter] [nchar] (1) COLLATE Latin1_General_CI_AS NULL,
 [BAG postcode] [nvarchar] (6) COLLATE Latin1_General_CI_AS NULL,
 [BAG plaats] [nvarchar] (80) COLLATE Latin1_General_CI_AS NULL,
+[BAG bouwjaar] [int] NULL,
 [Doelgroep] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
 [Huurbeleid] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Huidige labelconditie] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
@@ -65,4 +70,6 @@ GO
 CREATE NONCLUSTERED INDEX [Egenschappen_01] ON [Eenheden].[Eigenschappen] ([Bedrijf_id], [Eenheidnr], [Ingangsdatum]) ON [PRIMARY]
 GO
 CREATE UNIQUE CLUSTERED INDEX [Eigenschappen_pk] ON [Eenheden].[Eigenschappen] ([Eigenschappen_id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [Eigenschappen_02] ON [Eenheden].[Eigenschappen] ([Einddatum]) INCLUDE ([Eenheidnr], [Eenheid + adres]) ON [PRIMARY]
 GO

@@ -8,6 +8,7 @@ GO
 
 
 
+
 CREATE VIEW [Leegstand].[Leegstandsgeval]
 AS
 /* ##############################################################################################################
@@ -24,6 +25,10 @@ SELECT
   [Leegstandsnummer]                = dl.leegstandsnummer,
   [Sleutel eenheid]                 = dl.fk_eenheid_id,
   [Reden leegstand]                 = rl.descr,
+  [Reden leegstand groep]           = case 
+                                        when rl.descr in ('Marktleegstand','Technische leegstand','Markt met bruikleen','Asbestsanering','Nieuwbouw','Verkoop','Bewuste leegstand') then 'Mutatieleegstand'
+                                        else rl.descr
+                                      end,
   [Datum ingang]                    = CONVERT(DATE,dl.dt_ingang),
   [Datum einde]                     = CONVERT(DATE,dl.dt_einde),
   [Datum ingang reden]              = CONVERT(DATE,dl.dt_ingang_reden),

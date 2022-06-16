@@ -27,6 +27,7 @@ WIJZIGINGEN
 ----------------------------------------------------------------------------------------------------------------
 20210201 JvdW: jaargang 2020 ongemoeid laten - vandaar extra conditie toegevoegd bij delete en insert
 20210607 PP: Clusternummer toegevoegd aan output
+20220110 JvdW: output is gewijzigd - andere naam voor score
 ################################################################################################################# */
 
 begin try

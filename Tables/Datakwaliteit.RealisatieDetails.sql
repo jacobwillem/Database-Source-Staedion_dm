@@ -5,9 +5,6 @@ CREATE TABLE [Datakwaliteit].[RealisatieDetails]
 [Laaddatum] [datetime] NULL,
 [Omschrijving] [varchar] (255) COLLATE Latin1_General_CI_AS NULL,
 [fk_indicator_id] [int] NULL,
-[fk_eenheid_id] [int] NULL,
-[fk_contract_id] [int] NULL,
-[fk_klant_id] [int] NULL,
 [Teller] [numeric] (16, 4) NULL,
 [Noemer] [numeric] (16, 4) NULL,
 [fk_indicatordimensie_id] [int] NULL,
@@ -35,6 +32,8 @@ GO
 CREATE NONCLUSTERED INDEX [IX_id_samengesteld] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [i2_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [id1_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum], [Omschrijving], [fk_indicator_id], [Teller], [Noemer], [fk_indicatordimensie_id], [Eenheidnr], [Klantnr], [datEinde], [datIngang], [Hyperlink], [Bevinding], [fk_medewerker_id], [Relatienr]) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [i_RealisatieDetails] ON [Datakwaliteit].[RealisatieDetails] ([id_samengesteld]) INCLUDE ([Laaddatum], [Omschrijving], [fk_indicatordimensie_id], [Eenheidnr], [Klantnr], [fk_medewerker_id]) ON [PRIMARY]
 GO

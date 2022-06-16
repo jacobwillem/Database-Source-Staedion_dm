@@ -72,3 +72,7 @@ CREATE TABLE [Onderhoud].[Onderhoudsorder]
 [Aangemaakt zonder kostenspecificatie] [nvarchar] (3) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
+CREATE CLUSTERED INDEX [cidx_Onderhoudsorder_Onderhoudsorder_id_bedrijf_id] ON [Onderhoud].[Onderhoudsorder] ([Bedrijf_id], [Onderhoudsorder_id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [idx_Onderhoudsorder_Onderhoudsorder_id_huidig_record] ON [Onderhoud].[Onderhoudsorder] ([Onderhoudsorder_id]) INCLUDE ([Huidig record]) ON [PRIMARY]
+GO

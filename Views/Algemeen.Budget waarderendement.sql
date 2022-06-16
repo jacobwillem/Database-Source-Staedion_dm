@@ -6,6 +6,7 @@ GO
 
 
 
+
 --USE [staedion_dm]
 --GO
 
@@ -54,10 +55,11 @@ left join empire_logic.dbo.lt_mg_cluster c on
   c.Nr_ = isnull(nullif(glbe.Clusternr_,''),cvpc.[FT-clusternummer])
 where  gla.No_ like '%a8%'
 and glbe.mg_bedrijf = 'staedion'
-and glbe.[Budget Name] = 'BEGR 2021' 
+and glbe.[Budget Name] in ('BEGR 2021','BEGR 2022','BEGR 2023', 'BEGR 2024')
   
 
  
+
 
 
 

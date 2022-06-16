@@ -86,6 +86,9 @@ CREATE TABLE [Algemeen].[Eenheid]
 [EAN Code Electriciteit] [nvarchar] (18) COLLATE Latin1_General_CI_AS NOT NULL,
 [EAN Code Gas] [nvarchar] (18) COLLATE Latin1_General_CI_AS NOT NULL,
 [EAN Code] [nvarchar] (18) COLLATE Latin1_General_CI_AS NULL,
-[Contactpersoon BOG] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL
+[Contactpersoon BOG] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
+[Verhuurder] [nvarchar] (105) COLLATE Latin1_General_CI_AS NOT NULL,
+[Parkeren type huurder] [varchar] (255) COLLATE Latin1_General_CI_AS NULL,
+[Parkeren huurder] [varchar] (500) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO

@@ -59,6 +59,8 @@ CREATE TABLE [Grootboek].[Grootboekposten]
 [Eenheidnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
+CREATE NONCLUSTERED INDEX [Grootboekposten_bedrijf_boekdatum_document] ON [Grootboek].[Grootboekposten] ([Bedrijf_id], [Boekdatum], [Document nr]) ON [PRIMARY]
+GO
 CREATE NONCLUSTERED INDEX [Grootboekposten_bedrijf_boekdatum_rekening_id] ON [Grootboek].[Grootboekposten] ([Bedrijf_id], [Boekdatum], [Rekening_id]) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [Grootboekposten_bedrijf_rekening_id_boekdatum] ON [Grootboek].[Grootboekposten] ([Bedrijf_id], [Rekening_id], [Boekdatum]) ON [PRIMARY]
@@ -66,4 +68,6 @@ GO
 CREATE NONCLUSTERED INDEX [Grootboek_01] ON [Grootboek].[Grootboekposten] ([Bedrijf_id], [Volgnummer]) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [jvdw_Grootboekposten_Rekening] ON [Grootboek].[Grootboekposten] ([Rekening_id]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [jvdw_Grootboekposten_Rekening_extra] ON [Grootboek].[Grootboekposten] ([Rekening_id]) INCLUDE ([Bedrijf_id], [Volgnummer], [Boekdatum], [Document nr], [Omschrijving], [Productboekingsgroep_id], [Tegenrekening Leverancier], [Bedrag incl. verplichting], [Gebruiker], [Bron_id], [Bron Klant], [Eenheidnr]) ON [PRIMARY]
 GO

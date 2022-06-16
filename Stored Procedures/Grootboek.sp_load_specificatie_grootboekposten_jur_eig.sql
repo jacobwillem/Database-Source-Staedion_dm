@@ -3,16 +3,20 @@ GO
 SET ANSI_NULLS ON
 GO
 
+--exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @_DatumVanaf = '20210101',@_DatumTotenMet = '20211231' , @Eigenaar =  'Staedion VG Holding BV', @Verversen = 0
 
+
+--ALTER TABLE staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig ADD bedrag_incl_evt_btw DECIMAL(12,2)
+--ALTER TABLE staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig ADD opmerking VARCHAR(50)
 
 CREATE     PROCEDURE [Grootboek].[sp_load_specificatie_grootboekposten_jur_eig] (
 	@_DatumVanaf DATE = NULL,
 	@_DatumTotenMet DATE = NULL, 
 	@Eigenaar NVARCHAR(100) =  'Staedion VG Holding BV',
-	@Testversie BIT = 0
+	@Verversen BIT = 0
 )
 AS
-/* #################################################################################################################
+/* ##################################################################################################################################################################################################################################
 VAN			Jaco
 BETREFT		Ophalen grootboekposten dan wel toegerekende posten die betrekking hebben op bepaalde juridisch eigenaar + voorbereiden memoriaalboeking
 ZIE			21 06 581 Automatiseren waar mogelijk - afrekening exploitatie WOM en SVGH
@@ -47,13 +51,21 @@ WIJZIGINGEN
 > Eenheden waarvan Empire niet meer weet dat ze in het verleden waren van Vastgoed Holding (door deze informatie te wissen ipv met datum te beeindigen): handmatig toegevoegd + signalering
 EVT NOG DOEN: als Snapshot ELS niet beschikbaar is per @Datum-variabele, dan gaat het mis
 20211217 Cluster / kostenplaats ook updaten
+20220215 JvdW Ovv Eric
+> btw-code *INT* - dan btwbedrag toevoegen aan bedrag zodat VG Holding dit in btw-aangifte kan verrekenen
 
+
+20220422 JvdW na overleg met Ashwin en Eric de Gier
+> WOM is niet meer van toepassing
+> Graag eenheden tot aan 2021 eruit laten
+> graag realisatie * -1 in vergelijking met begroting
 ----------------------------------------------------------------------------------------------------------------
 TEST
 ----------------------------------------------------------------------------------------------------------------
 exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig]
-exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @_DatumVanaf = '20210101',@_DatumTotenMet = '20211231' , @Eigenaar = 'Staedion VG Holding BV', @Testversie = 0
-exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @Testversie = 1
+exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @_DatumVanaf = '20210101',@_DatumTotenMet = '20211231' , @Eigenaar = 'Staedion VG Holding BV', @Verversen = 1
+exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @_DatumVanaf = '20210101',@_DatumTotenMet = '20211231' , @Eigenaar = 'WOM', @Verversen = 1
+exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @Verversen = 1
 exec staedion_dm.Grootboek.[sp_load_specificatie_grootboekposten_jur_eig] @Eigenaar = 'WOM'
 
 select top 100 * from empire_staedion_Data.etl.LogboekMeldingenProcedures order by Begintijd desc
@@ -75,8 +87,8 @@ Detailcheck
 ----------------------------------------------------------------------------------------------------------------
 DECLARE @Nr AS BIGINT = 126290315
 ;
-select * from ##posten1 where Volgnummer = @Nr;
-select * from ##posten2 where Volgnummer = @Nr
+select * from ##Posten1 where Volgnummer = @Nr;
+select * from ##Posten2 where Volgnummer = @Nr
 ;
 
 with cte_eenheden_juridisch as 
@@ -139,11 +151,30 @@ GROUP BY [G_L Entry No_]
 	,[Entry Type]
 ;
 
-################################################################################################################# */
+################################################################################################################################################################################################################################## */
 
+SET NOCOUNT ON;
 
 -- In SSRS werden velden vreemd genoeg niet herkend, door d
  DECLARE @FMTONLY BIT;  
+ DECLARE @DagWeek NVARCHAR(5) = CASE DATEPART(DW, getdate()) -- de uitkomst hangt af van de instelling van @@DATEFIRST, berekening gaat uit van default = 7 (=zondag als eerste dag vd week)
+							WHEN 2
+											THEN 'ma'
+							WHEN 3
+											THEN 'di'
+							WHEN 4
+											THEN 'wo' 
+							WHEN 5
+											THEN 'do'
+							WHEN 6
+											THEN 'vr'
+							WHEN 7
+											THEN 'za'
+							WHEN 1
+											THEN 'zo'
+							ELSE convert(NVARCHAR(10), DATEPART(DW, getdate()))
+							END
+
   
  IF 1 = 0  
  BEGIN  
@@ -156,23 +187,26 @@ GROUP BY [G_L Entry No_]
 --SET NOCOUNT, XACT_ABORT ON;
 
 --TBV SSRS snel herkennen velden bijv
-	IF @Testversie = 1 
+	IF @Verversen = 0 and @DagWeek not in ( 'za', 'zo') 
 		GOTO _Label_Select_Test
 
 --BEGIN TRY
 --BEGIN TRANSACTION;
 
 	-- Diverse variabelen
-	DECLARE @DatumVanaf DATE
-	DECLARE @DatumTotenMet DATE
-	declare @start as datetime
-	declare @finish as datetime
-	DECLARE @LogboekTekst NVARCHAR(255) = ' ### Maatwerk Staedion: ';
-	DECLARE @VersieNr NVARCHAR(80) = ' - JvdW Versie 5 20211019'	;
-	SET @LogboekTekst = @LogboekTekst + OBJECT_NAME(@@PROCID) + @VersieNr;
-    DECLARE @Bericht NVARCHAR(255);
-    DECLARE @Onderwerp NVARCHAR(100);
-	DECLARE @AantalRecords DECIMAL(12, 0);
+		DECLARE @Bron NVARCHAR(255) =  OBJECT_NAME(@@PROCID),										
+				@Variabelen NVARCHAR(255),															
+				@AantalRecords DECIMAL(12, 0),														
+				@Bericht NVARCHAR(255),															
+				@DatumVanaf DATE,
+				@DatumTotenMet DATE,
+				@Start DATETIME,
+				@Finish DATETIME,
+				@LogboekTekst NVARCHAR(255) = OBJECT_NAME(@@PROCID),
+				@Onderwerp NVARCHAR(100),
+				@Categorie AS NVARCHAR(255) = 	COALESCE(OBJECT_SCHEMA_NAME(@@PROCID),'Overig')	
+	
+	DROP TABLE IF EXISTS ##cte_eenheden;
 
 		PRINT convert(VARCHAR(20), getdate(), 121) + @LogboekTekst + ' - BEGIN (periode: ' + format(@DatumVanaf, 'dd-MM-yyyy') + ' - '+ format(@DatumTotenMet, 'dd-MM-yyyy' + ')');
 
@@ -187,7 +221,7 @@ GROUP BY [G_L Entry No_]
 		SET @DatumVanaf = @_DatumVanaf
 
 	If @_DatumTotEnMet is null 
-		set @DatumTotEnMet =  eomonth(getdate());
+		set @DatumTotEnMet =  eomonth(dateadd(m,-1,getdate()));
 	If @_DatumTotEnMet is NOT NULL 
 		SET @DatumTotEnMet = @_DatumTotEnMet
 
@@ -219,22 +253,26 @@ GROUP BY [G_L Entry No_]
 				AND clusternummer IN (
 					SELECT DISTINCT clusternummer
 					FROM empire_staedion_data.dbo.els
-					WHERE datum_gegenereerd = (
-							SELECT max(datum_gegenereerd)
-							FROM empire_staedion_data.dbo.els
-							)
-						AND [Juridisch eigenaar] LIKE '%'+ @Eigenaar + '%'
+					WHERE [Juridisch eigenaar] LIKE '%'+ @Eigenaar + '%'
+							--AND datum_gegenereerd = (
+							--SELECT max(datum_gegenereerd)
+							--FROM empire_staedion_data.dbo.els
+							--)
 					)
 			)
 		SELECT *, Eigenaar = @Eigenaar
-		INTO #cte_eenheden
+		INTO ##cte_eenheden
 		FROM cte_eenheden;
 		
 			SET @AantalRecords = @@rowcount
 				;
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+				EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'Eenheden opvoeren - vervolg';
@@ -272,7 +310,7 @@ GROUP BY [G_L Entry No_]
 			,clusternaam
 			,corpodata_type
 			,datum_in_exploitatie =   datum_in_exploitatie 
-			,datum_uit_exploitatie =   datum_uit_exploitatie 
+			,datum_uit_exploitatie =  datum_uit_exploitatie 
 			,[In Exploitatie]
 			,[Begindatum juridisch eigenaar] = convert(DATE, NULL)
 			,[Einddatum juridisch eigenaar] = convert(DATE, NULL)
@@ -285,11 +323,11 @@ GROUP BY [G_L Entry No_]
 			,Classificatie = convert(NVARCHAR(100), NULL)
 			,Opmerking = iif(1 < (
 					SELECT count(DISTINCT [Juridisch eigenaar])
-					FROM #cte_eenheden AS TWEE
+					FROM ##cte_eenheden AS TWEE
 					WHERE EEN.clusternummer = TWEE.clusternummer
 					), 'Let op: gesplitst cluster', '')
 			,@Eigenaar
-		FROM #cte_eenheden as EEN
+		FROM ##cte_eenheden as EEN
 		ORDER BY Eigenaar
 			,clusternummer
 			,[Juridisch eigenaar];
@@ -307,7 +345,8 @@ GROUP BY [G_L Entry No_]
 			,_hierna = lead(CONT.[Name]) OVER (
 				PARTITION BY BEH.[Realty Object No_] ORDER BY [Start Date] ASC
 				)
-		INTO #JurEig
+			, CONVERT(NVARCHAR(50),'Info Empire') AS Opmerking
+		INTO ##JurEig
 		FROM empire_data.dbo.[Staedion$Realty_Object_Owner_Supervisor] AS BEH
 		--FROM empire.empire.dbo.[Staedion$Realty Object Owner_Supervisor] AS BEH WITH (NOLOCK)
 		JOIN empire_data.dbo.[Contact] AS CONT ON CONT.No_ = BEH.[Owner]
@@ -316,66 +355,80 @@ GROUP BY [G_L Entry No_]
 				FROM staedion_dm.rapport.Eenheden_Jur_Eig
 				);
 
-		UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
-		SET [Begindatum juridisch eigenaar] = JUR.[Begindatum]
-			,[Einddatum juridisch eigenaar] = JUR.Einddatum
-		FROM staedion_dm.rapport.Eenheden_Jur_Eig AS BASIS
-		JOIN #JurEig AS JUR ON JUR.Eenheidnr = BASIS.Eenheidnr
-			AND JUR.Eigenaar LIKE '%' + @Eigenaar + '%';
-
-		UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
-		SET [Begindatum juridisch eigenaar ELS] = (
-				SELECT min(datum_gegenereerd)
-				FROM empire_staedion_data.dbo.els AS ELS
-				WHERE ELS.[Juridisch eigenaar] LIKE '%' + @Eigenaar + '%'
-					AND ELS.Eenheidnr = staedion_dm.rapport.Eenheden_Jur_Eig.Eenheidnr
-				);
-
-
-		UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
-		SET [Einddatum juridisch eigenaar ELS] = (
-				SELECT max(datum_gegenereerd)
-				FROM empire_staedion_data.dbo.els AS ELS
-				WHERE ELS.[Juridisch eigenaar] LIKE '%' + @Eigenaar + '%'
-					AND ELS.Eenheidnr = staedion_dm.rapport.Eenheden_Jur_Eig.Eenheidnr
-				);
-
-		UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
-		SET [Einddatum juridisch eigenaar ELS] = '20991231'
-		WHERE [Einddatum juridisch eigenaar ELS] = (
-				SELECT max(datum_gegenereerd)
-				FROM empire_staedion_data.dbo.els AS ELS
-				);
-
-		DECLARE @BegindatumJur AS DATE = '20200101';
-		DECLARE @EinddatumJur AS DATE = '20210624';
-		DECLARE @Opmerking AS NVARCHAR(100) = 'Ontbrekende info Empire-obv mail Brenda';
-		DECLARE @JuridischEigenaar AS NVARCHAR(50) = 'Staedion VG Holding BV';
-
-		Drop TABLE IF EXISTS #HandmatigUpdateOfInsert;
-
-		CREATE TABLE #HandmatigUpdateOfInsert
-		(Eenheidnr NVARCHAR(20));
-
-		INSERT INTO #HandmatigUpdateOfInsert (Eenheidnr) 
-		VALUES ('OGEH-0057264'),('OGEH-0057477'),('OGEH-0057446'),('OGEH-0057356'),('OGEH-0057479'),('OGEH-0057499'),
+		-- Handmatig tijdelijk toegevoegd als dit nog niet in Empire zou staan: Vastgoed Holding
+		DECLARE @VG TABLE (Eenheidnr NVARCHAR(20))
+		INSERT INTO @VG (Eenheidnr) 	VALUES ('OGEH-0057264'),('OGEH-0057477'),('OGEH-0057446'),('OGEH-0057356'),('OGEH-0057479'),('OGEH-0057499'),
 					('OGEH-0057355'),('OGEH-0057354'),('OGEH-0057448'),('OGEH-0057521'),('OGEH-0057478'),('OGEH-0057514'),('OGEH-0057527'),('OGEH-0057333'),
 					('OGEH-0057491'),('OGEH-0057451'),('OGEH-0057437'),('OGEH-0057481'),('OGEH-0057515'),('OGEH-0057528'),('OGEH-0061278'),('OGEH-0057438'),
 					('OGEH-0057334'),('OGEH-0057353'),('OGEH-0057480'),('OGEH-0057449'),('OGEH-0057493'),('OGEH-0057351'),('OGEH-0057500'),('OGEH-0057492'),
 					('OGEH-0057352'),('OGEH-0057450'),('OGEH-0057482'),('OGEH-0061104'),('OGEH-0061261'),('OGEH-0057436'),('OGEH-0057447'),('OGEH-0057516'),
 					('OGEH-0057445'),('OGEH-0057335')
+	
+		INSERT INTO ##JurEig (Eenheidnr, Begindatum, Eigenaar, Einddatum, _Volgnr, _hierna, Opmerking)
+			SELECT Eenheidnr, '20200101', 'Staedion VG Holding BV', '20210624',NULL, NULL,'Ontbrekende info Empire-obv mail Brenda'
+			FROM @VG
+			--WHERE Eenheidnr NOT IN (SELECT Eenheidnr FROM ##JurEig)
 
+		-- Handmatig tijdelijk toegevoegd als dit nog niet in Empire zou staan: WOM
+		DECLARE @WOM TABLE (Eenheidnr NVARCHAR(20), Begindatum DATE, Eigenaar NVARCHAR(50), Einddatum DATE, _Volgnr INT, _hierna INT, Opmerking NVARCHAR(50))
+
+			INSERT INTO @WOM (Eenheidnr, Begindatum, Eigenaar, Einddatum, _Volgnr, _hierna, Opmerking)
+			SELECT 'OGEH-0057519', '20200101', 'WOM Stationsbuurt-oude centrum', '20211231',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+
+			SELECT 'OGEH-0057519', '20200910', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0064321', '20210428', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0064322', '20210428', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0064323', '20210428', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+
+			SELECT 'OGEH-0057415', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0057416', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0057463', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0057464', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0057467', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0057503', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061484', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061485', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061486', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061487', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061488', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061489', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061490', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061491', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061492', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061493', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061494', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061495', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061496', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061497', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061498', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061499', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061500', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061501', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061502', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061503', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061574', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061575', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061754', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061755', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061803', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061804', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' UNION
+			SELECT 'OGEH-0061805', '20200101', 'WOM Stationsbuurt-oude centrum', '20220103',NULL, NULL,'Ontbrekend in Empire obv ELS-lijst' 
+								
+		INSERT INTO ##JurEig (Eenheidnr, Begindatum, Eigenaar, Einddatum, _Volgnr, _hierna, Opmerking)
+			SELECT Eenheidnr, Begindatum, Eigenaar, Einddatum, NULL,NULL, Opmerking
+			FROM @WOM
+			--WHERE eenheidnr NOT IN (SELECT Eenheidnr FROM ##JurEig)
 		
-		update staedion_dm.rapport.Eenheden_Jur_Eig 
-		set [Begindatum juridisch eigenaar] = '20200101'
-			,[Einddatum juridisch eigenaar] = '20210624'
-			,[Aanvullende opmerking 1] = 'Ontbrekende info Empire-obv mail Brenda'
-			,[Juridisch eigenaar] = 'Staedion VG Holding BV'
-		where [Begindatum juridisch eigenaar] is null 
-		and [Einddatum juridisch eigenaar] is NULL
-		and Eenheidnr in (SELECT Eenheidnr FROM #HandmatigUpdateOfInsert)
-		;
+		-- update van info als eenheid al in Eenheden_Jur_Eig (dus Empire) zat 
+		UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
+		SET [Begindatum juridisch eigenaar] = JUR.[Begindatum]
+			,[Einddatum juridisch eigenaar] = JUR.Einddatum
+			,[Juridisch eigenaar] = JUR.Eigenaar
+		FROM staedion_dm.rapport.Eenheden_Jur_Eig AS BASIS
+		JOIN ##JurEig AS JUR ON JUR.Eenheidnr = BASIS.Eenheidnr
+			AND JUR.Eigenaar LIKE '%' + @Eigenaar + '%';
 
+		-- toevoegen van info als eenheid not niet n Eenheden_Jur_Eig (dus Empire) zat 
 		INSERT INTO staedion_dm.rapport.Eenheden_Jur_Eig (
 				[eenheidnr]
 				,[straat]
@@ -388,26 +441,80 @@ GROUP BY [G_L Entry No_]
 				,[Aanvullende opmerking 1]
 				,[Juridisch eigenaar]
 				)
-			SELECT TMP.eenheidnr
+			SELECT JUR.eenheidnr
 				,OGE.straatnaam
 				,OGE.huisnr_
 				,OGE.toevoegsel
-				,datum_in_exploitatie =  oge.[begin exploitatie] 
-				,datum_uit_exploitatie =  COALESCE(NULLIF(oge.[einde exploitatie],'17530101'),'20991231') 
-				,[Begindatum juridisch eigenaar] = @BegindatumJur
-				,[Einddatum juridisch eigenaar] = @EinddatumJur
-				,[Aanvullende opmerking 1] = @Opmerking
-				,@JuridischEigenaar
-			FROM #HandmatigUpdateOfInsert AS TMP
+				,datum_in_exploitatie =  oge.[begin exploitatie]
+				,datum_uit_exploitatie =  COALESCE(NULLIF(oge.[einde exploitatie],'17530101'),'20991231')
+				,[Begindatum juridisch eigenaar] = JUR.[Begindatum]
+				,[Einddatum juridisch eigenaar] = JUR.Einddatum
+				,[Aanvullende opmerking 1] = JUR.Opmerking
+				,JUR.Eigenaar
+			FROM ##JurEig AS JUR
 			JOIN empire_data.dbo.Staedion$oge AS OGE
-			ON OGE.Nr_ = TMP.Eenheidnr
-			WHERE TMP.Eenheidnr NOT IN (SELECT eenheidnr FROM staedion_dm.rapport.Eenheden_Jur_Eig)
+			ON OGE.Nr_ = JUR.Eenheidnr
+			WHERE JUR.Eenheidnr NOT IN (SELECT eenheidnr FROM staedion_dm.rapport.Eenheden_Jur_Eig)
+				AND JUR.Eigenaar LIKE '%' + @Eigenaar + '%';
 			;
+
+		UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
+		SET [Begindatum juridisch eigenaar ELS] = (
+				SELECT min(datum_gegenereerd)
+				FROM empire_staedion_data.dbo.els AS ELS
+				WHERE ELS.[Juridisch eigenaar] LIKE '%' + @Eigenaar + '%'
+					AND ELS.Eenheidnr = staedion_dm.rapport.Eenheden_Jur_Eig.Eenheidnr
+				);
+
+		WITH cte_max_els
+		AS (SELECT MAX(datum_gegenereerd) AS max_datum_gegenereerd
+			FROM empire_staedion_data.dbo.els
+			WHERE datum_Gegenereerd <= GETDATE()),				-- wanneer is ELS voor het laatst bijgewerkt
+			 cte_max_jur_els
+		AS (SELECT ELS.Eenheidnr,
+				   MAX(datum_gegenereerd) AS dat_einde_jur		-- is er een einddatum voor juridisch eigenaar bekend (die voor datum laatst bijgewerkt ligt)
+			FROM empire_staedion_data.dbo.els AS ELS
+			WHERE ELS.[Juridisch eigenaar] LIKE '%' + @Eigenaar + '%'
+				  AND ELS.Eenheidnr in (select eenheidnr from staedion_dm.rapport.Eenheden_Jur_Eig)
+				  and ELS.datum_Gegenereerd <= GETDATE()
+				  group by ELS.Eenheidnr)
+		UPDATE BASIS
+		SET [Einddatum juridisch eigenaar ELS] = COALESCE(ELS.dat_einde_jur, '20991231')		-- of einddatum juridisch eigenaar tonen of 20991231
+		FROM staedion_dm.rapport.Eenheden_Jur_Eig AS BASIS
+			JOIN cte_max_els AS DAT
+				ON 1 = 1
+			left outer jOIN cte_max_jur_els AS ELS
+				ON ELS.Eenheidnr = BASIS.Eenheidnr
+				and DAT.max_datum_gegenereerd > ELS.dat_einde_jur;
+
+		--JvDW 20220422
+		--UPDATE staedion_dm.rapport.Eenheden_Jur_Eig
+		--SET [Einddatum juridisch eigenaar ELS] = '20991231'
+		--WHERE [Einddatum juridisch eigenaar ELS] = (
+		--		SELECT max(datum_gegenereerd)
+		--		FROM empire_staedion_data.dbo.els AS ELS
+		--		);
+		delete from  staedion_dm.rapport.Eenheden_Jur_Eig where [Juridisch eigenaar] = 'Staedion VG Holding BV' and year([einddatum juridisch eigenaar])<year(@DatumTotEnMet)
+
+
+		-- 20220426 Bij wijze van uitzondering tbv 2022-T1 overboeking deze correctie van foutieve data in Empire na mailwisseling EdG
+		UPDATE BASIS
+		SET [Begindatum juridisch eigenaar] = '20211217',
+			Opmerking = '26-4-2022 datum fout in Empire'
+		FROM staedion_dm.Rapport.Eenheden_Jur_Eig AS BASIS
+		WHERE [Juridisch eigenaar] = 'Staedion VG Holding BV'
+					 AND Eenheidnr in ('OGEH-0061574','OGEH-0061575','OGEH-0057503')
+			  ;
+
 			SET @AantalRecords = @@rowcount
 			;
 			SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 			SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-			EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+			EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'Aanpassen einddatum juridisch eigenaar - einddatum exploitatie eenheid';
@@ -425,9 +532,17 @@ GROUP BY [G_L Entry No_]
 			;
 			SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 			SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-			EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+			EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 
+		UPDATE staedion_dm.Rapport.Eenheden_Jur_Eig
+		SET datum_uit_exploitatie = '20991231'
+		WHERE datum_uit_exploitatie = '19000101'
+		;
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'BEGIN (periode: ' + format(@DatumVanaf, 'dd-MM-yyyy') + ' - '+ format(@DatumTotenMet, 'dd-MM-yyyy' + ') - overhalen toegerekende posten (gemakshalve hierin opgenomen)');
 	----------------------------------------------------------------------------------- 
@@ -435,12 +550,16 @@ GROUP BY [G_L Entry No_]
 	
 	DROP TABLE IF exists ##Posten1; -- voor grootboekposten
 	DROP TABLE IF exists ##Posten2; -- voor toegerekende posten
-	DROP TABLE IF EXISTS #JurEig;
-	DROP TABLE IF EXISTS #cte_eenheden;
+	DROP TABLE IF EXISTS ##JurEig;
+	DROP TABLE IF EXISTS ##cte_eenheden;
 
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+				EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 	-------------------------------------------------------------------------------------
 	set @Onderwerp = 'Alle regels uit grootboekposten: ##Posten1';
@@ -470,6 +589,7 @@ GROUP BY [G_L Entry No_]
 		--,CTE.[Juridisch eigenaar]
 		,[Gebruikers-id] = POST.Gebruiker
 		,Eigenaar = @Eigenaar
+		,BTW.Btwproductboekingsgroep
 	into ##Posten1
 	FROM staedion_dm.Grootboek.Grootboekposten AS POST
 	JOIN staedion_dm.Grootboek.Rekening AS REK ON REK.Rekening_id = POST.Rekening_id
@@ -546,33 +666,37 @@ GROUP BY [G_L Entry No_]
 				;
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+				EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'Updates ##Posten1';
 	----------------------------------------------------------------------------------- 
 
 	-- update tabel om duidelijk te maken waar toerekening volledig is
-	alter table ##posten1 add [Toegerekende post] nvarchar(10)
-	alter table ##posten1 add [Toegerekende post bedrag] decimal(12,2)
-	alter table ##posten1 add [Toegerekende post ok] bit
+	alter table ##Posten1 add [Toegerekende post] nvarchar(10)
+	alter table ##Posten1 add [Toegerekende post bedrag] decimal(12,2)
+	alter table ##Posten1 add [Toegerekende post ok] bit
 	;
 
-	update ##posten1 
+	update ##Posten1 
 	set [Toegerekende post] = 'Ja'
-	where exists (select 1 from ##posten2 as TOE where TOE.Volgnummer = ##posten1.Volgnummer)
+	where exists (select 1 from ##Posten2 as TOE where TOE.Volgnummer = ##Posten1.Volgnummer)
 	;
-	update ##posten1 
+	update ##Posten1 
 	set [Toegerekende post bedrag] = 
 	(select sum([Toegerekend bedrag]) 
-	from ##posten2 as TOE where TOE.Volgnummer = ##posten1.Volgnummer)
+	from ##Posten2 as TOE where TOE.Volgnummer = ##Posten1.Volgnummer)
 	where 1=1
 	;
-	update ##posten1 
+	update ##Posten1 
 	set [Toegerekende post ok] = 1
 	where [Toegerekende post bedrag] is not null and [Toegerekende post bedrag] = bedrag
 	;
-	update ##posten1 
+	update ##Posten1 
 	set [Toegerekende post ok] = 0
 	where [Toegerekende post bedrag] is not null and [Toegerekende post bedrag] <> bedrag
 	;
@@ -615,7 +739,7 @@ GROUP BY [G_L Entry No_]
 			, [Toegerekende post ok]
 			,Eigenaar = @Eigenaar
 	-- select count(*) --30.940 vs 27.457
-	from	##posten1
+	from	##Posten1
 	where	[Toegerekende post ok] is NULL
 	or		[Toegerekende post ok] = 0
 	;
@@ -624,7 +748,11 @@ GROUP BY [G_L Entry No_]
 				;
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+				EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig- met toegerekende posten';
@@ -661,8 +789,8 @@ GROUP BY [G_L Entry No_]
 			, Eigenaar = @Eigenaar
 	-- select count(*) --30.940 vs 27.457
 	-- select count(distinct POST.Volgnummer) -- 3.483 + 27.457 = 30.940
-	from	##posten1 as POST
-	inner join ##posten2 as TOE
+	from	##Posten1 as POST
+	inner join ##Posten2 as TOE
 	on		TOE.Volgnummer = POST.Volgnummer
 	--OUTER APPLY staedion_dm.[Eenheden].[fn_Eigenschappen](TOE.Eenheidnr, GETDATE()) as KENM
 	where	coalesce(POST.[Toegerekende post ok],0) = 1
@@ -671,13 +799,17 @@ GROUP BY [G_L Entry No_]
 				;
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
-				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+				EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
 
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'Update kenmerken Corpodatatype + Cluster + Adm Eigenaar + Jur Eigenaar - UITGEZET DUURT TE LANG';
 	----------------------------------------------------------------------------------- 
 	--update  BASIS
-	--set		[Corpodata type] = KENM.[Corpodata type]
+	--set	[Corpodata type] = KENM.[Corpodata type]
 	--		,[Cluster] = KENM.[FT clusternr]
 	--		,[Administratief eigenaar] = KENM.[Administratief eigenaar]
 	--		,[Juridisch eigenaar] = KENM.[Juridisch eigenaar]
@@ -685,13 +817,66 @@ GROUP BY [G_L Entry No_]
 	--OUTER APPLY staedion_dm.[Eenheden].[fn_Eigenschappen](BASIS.Eenheidnr, GETDATE()) as KENM
 	--where	BASIS.[Juridisch eigenaar] is null
 	----;
+	Drop table If Exists #Kenmerken;
+
+	select Eenheidnr, [Administratief eigenaar], [Juridisch eigenaar] ,[Corpodata type] ,[FT clusternr] into #Kenmerken from  staedion_dm.[Eenheden].[fn_Eigenschappen](null, GETDATE()) as KENM
+
+	update  BASIS
+	set	[Corpodata type] = KENM.[Corpodata type]
+			,[Cluster] = KENM.[FT clusternr]
+			,[Administratief eigenaar] = KENM.[Administratief eigenaar]
+			,[Juridisch eigenaar] = KENM.[Juridisch eigenaar]
+	from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as BASIS
+	join	#Kenmerken as KENM
+	on		KENM.Eenheidnr = BASIS.Eenheidnr
+	where	BASIS.[Juridisch eigenaar] is null
+
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'Update kenmerken Cluster';
 	----------------------------------------------------------------------------------- 
+	Drop table If Exists #ClusterEenheid;
+	select Nr,  [FT-Clusternummer] into #ClusterEenheid from staedion_dm.Eenheden.fn_CLusterBouwblok (null)
+
+	update  BASIS
+	set		[Cluster] = CLUS.[FT-Clusternummer]
+	from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as BASIS
+	join	#ClusterEenheid as CLUS
+	on		BASIS.[Eenheidnr] = CLUS.Nr
+	;
+
+	/* TE TRAAG
 	update  BASIS
 	set		[Cluster] = CLUS.[FT-Clusternummer]
 	from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as BASIS
 		OUTER APPLY staedion_dm.Eenheden.fn_CLusterBouwblok (BASIS.[Eenheidnr]) AS CLUS
+	;
+	*/
+
+				SET @AantalRecords = @@rowcount
+				;
+				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
+				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
+				EXEC staedion_dm.[DatabaseBeheer].[sp_loggen_uitvoering_database_objecten]  
+						@Categorie = @Categorie
+						,@DatabaseObject = @Bron
+						,@Variabelen = @Variabelen
+						,@Bericht = @Onderwerp
+
+	-----------------------------------------------------------------------------------
+	set @Onderwerp = 'Update bedrag_incl_evt_btw';
+	----------------------------------------------------------------------------------- 
+
+	UPDATE	BASIS
+	SET		bedrag_incl_evt_btw = COALESCE(Bedrag,0) + COALESCE([BTW-bedrag],0), 
+			opmerking = 'BTW + bedrag want btw-boekingsgroep = %INT%'
+	FROM	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig AS BASIS
+	WHERE	[BTW-poductboekingsgroep] LIKE '%INT%'
+	;
+	UPDATE	BASIS
+	SET		bedrag_incl_evt_btw = COALESCE(Bedrag,0) 
+	FROM	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig AS BASIS
+	WHERE	[BTW-poductboekingsgroep] NOT LIKE '%INT%'
+	or		[BTW-poductboekingsgroep] IS null
 	;
 
 				SET @AantalRecords = @@rowcount
@@ -706,7 +891,7 @@ GROUP BY [G_L Entry No_]
 
 		update	staedion_dm.rapport.Eenheden_Jur_Eig
 		set		Saldo_Overig_Binnen_Periode = 
-		(select sum (GRB.[Bedrag])
+		(select sum (GRB.bedrag_incl_evt_btw)
 		from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as GRB
 		where	staedion_dm.rapport.Eenheden_Jur_Eig.Eenheidnr = GRB.eenheidnr
 		and 	GRB.[Rekeningnr] not like 'A81%'
@@ -717,7 +902,7 @@ GROUP BY [G_L Entry No_]
 		) ;
 		update	staedion_dm.rapport.Eenheden_Jur_Eig
 		set		Saldo_Buiten_Periode = 
-		(select sum (GRB.[Bedrag])
+		(select sum (GRB.bedrag_incl_evt_btw)
 		from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as GRB
 		where	staedion_dm.rapport.Eenheden_Jur_Eig.Eenheidnr = GRB.eenheidnr
 		and 	GRB.[Rekeningnr] like 'A8%'
@@ -728,7 +913,7 @@ GROUP BY [G_L Entry No_]
 		;
 		update	staedion_dm.rapport.Eenheden_Jur_Eig
 		set		Saldo_Huur_Binnen_Periode = 
-		(select sum (GRB.[Bedrag])
+		(select sum (GRB.bedrag_incl_evt_btw)
 		from	staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig as GRB
 		where	staedion_dm.rapport.Eenheden_Jur_Eig.Eenheidnr = GRB.eenheidnr
 		and 	GRB.[Rekeningnr] like 'A81%'
@@ -812,7 +997,7 @@ GROUP BY [G_L Entry No_]
 					FROM staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig
 					))
 				,Rekeningnr
-				,sum(Bedrag)*-1
+				,sum(bedrag_incl_evt_btw)*-1
 				,Eenheidnr
 		FROM staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig
 		WHERE Rekeningnr LIKE 'A8%'
@@ -831,24 +1016,34 @@ GROUP BY [G_L Entry No_]
 		set Omschrijving = 'Afrekening '
 								+ @Eigenaar
 								+ ' ' 
-								+ format(@DatumVanaf,'MM') 
+								+ format(@DatumVanaf,'MMM') 
 								+ ' t/m '
-								+ format(@DatumTotEnMet,'MM-yyyy') 	
+								+ format(@DatumTotEnMet,'MMM-yyyy') 	
 								;
 		UPDATE  staedion_dm.rapport.Memoriaal_Jur_Eig
-		set		[Clusternr.] = CLUS.[FT-Clusternummer]
+		set			[Clusternr.] = CLUS.[FT-Clusternummer]
 					,[Kostenplaats code] = OGE.[Global Dimension 1 Code]
+
 		FROM    staedion_dm.rapport.Memoriaal_Jur_Eig AS BASIS
 		OUTER APPLY staedion_dm.Eenheden.fn_CLusterBouwblok (BASIS.[Eenheidnr.]) AS CLUS
 		LEFT OUTER JOIN empire_Data.dbo.staedion$OGE AS OGE 
 		ON OGE.Nr_ = BASIS.[Eenheidnr.]
 		;
 
+	-----------------------------------------------------------------------------------
+	set @Onderwerp = 'Datumstempel';
+	----------------------------------------------------------------------------------- 
+		UPDATE staedion_dm.rapport.Specificatie_Grootboekposten_Jur_Eig 
+		SET		gegenereerd = GETDATE()
+		;
+       
 				SET @AantalRecords = @@rowcount
 				;
+
 				SET @Bericht = 'Stap: ' + @Onderwerp + ' - records: ';
 				SET @bericht = @Bericht + format(@AantalRecords, 'N0');
 				EXEC empire_staedion_logic.dbo.hulp_log_nowait @Bericht;
+
 	-----------------------------------------------------------------------------------
 	set @Onderwerp = 'Check';
 	----------------------------------------------------------------------------------- 
@@ -865,9 +1060,9 @@ GROUP BY [G_L Entry No_]
 
 	DROP TABLE IF exists ##Posten1; -- voor grootboekposten
 	DROP TABLE IF exists ##Posten2; -- voor toegerende posten
-	DROP TABLE IF EXISTS #JurEig;
-	DROP TABLE IF EXISTS #cte_eenheden;
+	DROP TABLE IF EXISTS ##cte_eenheden;
 	
+	_Label_Select_Test:
 	SELECT BASIS.[Rekeningnr]
 		,BASIS.[Rekeningnaam]
 		,BASIS.[Bedrag]
@@ -893,6 +1088,7 @@ GROUP BY [G_L Entry No_]
 		,BASIS.[Toegerekende post ok]
 		,BASIS.[Omschrijving]
 		,BASIS.Eigenaar
+		,BASIS.gegenereerd
 	FROM staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig AS BASIS
 	LEFT OUTER JOIN staedion_dm.Eenheden.Eigenschappen AS EIG ON EIG.Eenheidnr = BASIS.Eenheidnr
 		AND EIG.Einddatum IS NULL
@@ -920,43 +1116,44 @@ GROUP BY [G_L Entry No_]
 
   --  END CATCH;
 
-	-- Alleen uit te voeren bij parameter @Testversie = 1
-	IF @Testversie = 1
-	BEGIN 
-		_Label_Select_Test:
-		SELECT BASIS.[Rekeningnr]
-			,BASIS.[Rekeningnaam]
-			,BASIS.[Bedrag]
-			,BASIS.[Eenheidnr]
-			,EIG.Adres
-			,BASIS.[Documentnr]
-			,BASIS.[Boekdatum]
-			,BASIS.[Kostenplaats]
-			,BASIS.[Volgnummer]
-			,BASIS.[Productboekingsgroep ]
-			,BASIS.[Broncode]
-			,BASIS.[BTW-poductboekingsgroep]
-			,BASIS.[BTW-bedrag]
-			,BASIS.[Corpodata type]
-			,BASIS.[Cluster]
-			,BASIS.[Administratief eigenaar]
-			,BASIS.[Juridisch eigenaar]
-			,BASIS.[Gebruikers-id]
-			,BASIS.[Bron]
-			,BASIS.[Periode]
-			,BASIS.[Toegerekende post]
-			,BASIS.[Toegerekende post bedrag]
-			,BASIS.[Toegerekende post ok]
-			,BASIS.[Omschrijving]
-			,BASIS.Eigenaar
-		FROM staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig AS BASIS
-		LEFT OUTER JOIN staedion_dm.Eenheden.Eigenschappen AS EIG ON EIG.Eenheidnr = BASIS.Eenheidnr
-			AND EIG.Einddatum IS NULL
-		WHERE BASIS.Rekeningnr LIKE 'A8%'
-			OR BASIS.Rekeningnr LIKE 'A9%'
-		ORDER BY BASIS.Rekeningnr
-			,BASIS.Volgnummer
-	END
+	-- Alleen uit te voeren bij parameter @Verversen = 1
+	--IF @Verversen = 1
+	--BEGIN 
+	--	_Label_Select_Test:
+	--	SELECT BASIS.[Rekeningnr]
+	--		,BASIS.[Rekeningnaam]
+	--		,BASIS.[Bedrag]
+	--		,BASIS.[Eenheidnr]
+	--		,EIG.Adres
+	--		,BASIS.[Documentnr]
+	--		,BASIS.[Boekdatum]
+	--		,BASIS.[Kostenplaats]
+	--		,BASIS.[Volgnummer]
+	--		,BASIS.[Productboekingsgroep ]
+	--		,BASIS.[Broncode]
+	--		,BASIS.[BTW-poductboekingsgroep]
+	--		,BASIS.[BTW-bedrag]
+	--		,BASIS.[Corpodata type]
+	--		,BASIS.[Cluster]
+	--		,BASIS.[Administratief eigenaar]
+	--		,BASIS.[Juridisch eigenaar]
+	--		,BASIS.[Gebruikers-id]
+	--		,BASIS.[Bron]
+	--		,BASIS.[Periode]
+	--		,BASIS.[Toegerekende post]
+	--		,BASIS.[Toegerekende post bedrag]
+	--		,BASIS.[Toegerekende post ok]
+	--		,BASIS.[Omschrijving]
+	--		,BASIS.Eigenaar
+	--		,BASIS.gegenereerd
+	--	FROM staedion_dm.Rapport.Specificatie_Grootboekposten_Jur_Eig AS BASIS
+	--	LEFT OUTER JOIN staedion_dm.Eenheden.Eigenschappen AS EIG ON EIG.Eenheidnr = BASIS.Eenheidnr
+	--		AND EIG.Einddatum IS NULL
+	--	WHERE BASIS.Rekeningnr LIKE 'A8%'
+	--		OR BASIS.Rekeningnr LIKE 'A9%'
+	--	ORDER BY BASIS.Rekeningnr
+	--		,BASIS.Volgnummer
+	--END
 
 --SET NOCOUNT, XACT_ABORT OFF;
 

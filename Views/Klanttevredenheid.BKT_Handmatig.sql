@@ -10,7 +10,9 @@ GO
 
 
 
-CREATE view [Klanttevredenheid].[BKT_Handmatig] as
+
+
+CREATE VIEW [Klanttevredenheid].[BKT_Handmatig] AS
 /* #########################################################################################
 -- info
 EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klanttevredenheid', 'BKT_Handmatig'
@@ -48,30 +50,31 @@ EXEC sys.sp_addextendedproperty
 ;  
 ######################################################################################### */    
 SELECT
-  [Datum]                                                   = convert(date,kcm.[Ingevulde gegevens]),
-  [Tijdstip]																								= convert(time,kcm.[Ingevulde gegevens]),
-  [Postcode]																								= kcm.postcode,
-  [Sleutel eenheid]                                         = oge.lt_id,
-  [Eenheidnr]																								= kcm.eenheidnr,
+  [Datum]                                                   = CONVERT(DATE,kcm.[Ingevulde gegevens]),
+  [Tijdstip]												= CONVERT(TIME,kcm.[Ingevulde gegevens]),
+  [Postcode]												= kcm.postcode,
+  [Sleutel eenheid]                                        = oge.lt_id,
+  [Eenheidnr]																		= kcm.eenheidnr,
   [Sleutel cluster] 																				= cluster.lt_id,
 	[Sleutel leverancier]																			= kcm.[Leveranciersnr],
-	[Leveranciersnaam]																				= kcm.[leveranciersnaam],
-  [Score]																										= kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion]
+	[Leveranciersnaam]												= kcm.[leveranciersnaam],
+  [Score]													= kcm.[Wat vond u van de manier waarop de aannemer de verbouwing heeft ]
+-- 20220117 [Welk rapportcijfer geeft u voor de dienstverlening van Staedion]
 -- FROM [A-bI-PROD].datamart.[kcm].[fac_kcm_snt407] AS kcm
-FROM empire_Staedion_Data.kcm.STN647_Ingevulde_gegevens as kcm
+FROM empire_Staedion_Data.kcm.STN647_Ingevulde_gegevens AS kcm
 -- from Staging.kcm as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
 
 UNION
 
 SELECT
-  [Datum]                                                   = convert(date,kcm.[Ingevulde gegevens]),
-  [Tijdstip]																								= convert(time,kcm.[Ingevulde gegevens]),
+  [Datum]                                                   = CONVERT(DATE,kcm.[Ingevulde gegevens]),
+  [Tijdstip]																								= CONVERT(TIME,kcm.[Ingevulde gegevens]),
   [Postcode]																								= kcm.postcode,
   [Sleutel eenheid]                                         = oge.lt_id,
   [Eenheidnr]																								= kcm.eenheidnr,
@@ -80,13 +83,13 @@ SELECT
 	[Leveranciersnaam]																				= kcm.[leveranciersnaam],
   [Score]																										= kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion]
 -- FROM [A-bI-PROD].datamart.[kcm].[fac_kcm_snt407] AS kcm
-FROM empire_Staedion_Data.kcm.STN647_Ingevulde_gegevens_2019 as kcm
+FROM empire_Staedion_Data.kcm.STN647_Ingevulde_gegevens_2019 AS kcm
 -- from Staging.kcm as kcm
-left join empire_logic.dbo.lt_mg_oge as oge on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge ON 
+  oge.mg_bedrijf = 'Staedion' AND
   oge.Nr_ = kcm.eenheidnr
-left join empire_logic.dbo.lt_mg_cluster as cluster on 
-  oge.mg_bedrijf = 'Staedion' and
+LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON 
+  oge.mg_bedrijf = 'Staedion' AND
   cluster.Nr_ = kcm.clusternr
 
 

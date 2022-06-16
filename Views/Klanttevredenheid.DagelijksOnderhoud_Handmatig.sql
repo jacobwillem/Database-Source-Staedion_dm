@@ -8,7 +8,11 @@ GO
 
 
 
-CREATE view [Klanttevredenheid].[DagelijksOnderhoud_Handmatig] as
+
+
+
+
+CREATE VIEW [Klanttevredenheid].[DagelijksOnderhoud_Handmatig] AS
 /* #########################################################################################
 -- info
 EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klanttevredenheid', 'DagelijksOnderhoud_Handmatig'
@@ -41,26 +45,28 @@ select Begindatum = min(Datum)
 ######################################################################################### */    
 WITH CTE
 AS (
-	SELECT [Datum] = convert(DATE, kcm.[Ingevulde gegevens])
-		,[Tijdstip] = convert(TIME, kcm.[Ingevulde gegevens])
+	SELECT [Datum] = CONVERT(DATE, kcm.[Ingevulde gegevens])
+		,[Tijdstip] = CONVERT(TIME, kcm.[Ingevulde gegevens])
 		,[Postcode] = kcm.postcode
 		,[Sleutel eenheid] = oge.lt_id
 		,[Eenheidnr] = kcm.eenheidnr
 		,[Sleutel cluster] = cluster.lt_id
 		,[Clusternr] = kcm.Clusternr
-		,[Score] = coalesce(kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion], kcm.[Welk rapportcijfer geeft u voor de dienstverlening van de aannem])
+		,[Score] = CAST(COALESCE(NULLIF(kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion ],'')
+						, NULLIF(kcm.[Welk rapportcijfer geeft u voor de dienstverlening van de aannem],'')
+						, NULLIF(kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion1],'')) AS DECIMAL(6,2))
 		,[Suggesties] = NULL -- kcm.[Uw tip(s):]  -- 20210105 blijkbaar vervallen
-		,[Aantal benodigde bezoeken volgens klant] = kcm.[Hoe vaak is er een medewerker langs geweest bij u voordat de rep]
+		,[Aantal benodigde bezoeken volgens klant] = NULL --kcm.[Hoe vaak is er een medewerker langs geweest bij u voordat de rep]
 		,[Medewerker] = kcm.[Naam behandelend medewerker Staedion]
 		,Reparatieverzoeknr = kcm.reparatieverzoeknr
 		,[Omschrijving onderhoudssjabloon] = kcm.omschrijving
 		,Onderhoudssjabloon = kcm.onderhoudssjabloon
 		,Leveranciersnr = kcm.leveranciersnr
 		,Leverancier = kcm.leveranciersnaam
-		,Bron = iif(kcm.[ProcesInfo Staedion] = 'Eigen dienst', 'Eigen dienst', 'Extern')
-		,[Soort leverancier] = coalesce(LEV.[Soort leverancier], 'Niet uitvragen')
+		,Bron = IIF(kcm.[ProcesInfo Staedion] = 'Eigen dienst', 'Eigen dienst', 'Extern')
+		,[Soort leverancier] = COALESCE(LEV.[Soort leverancier], 'Niet uitvragen')
 		,volgnummer = ROW_NUMBER() OVER (
-			PARTITION BY kcm.reparatieverzoeknr ORDER BY convert(DATE, kcm.[Ingevulde gegevens]) DESC
+			PARTITION BY kcm.reparatieverzoeknr ORDER BY CONVERT(DATE, kcm.[Ingevulde gegevens]) DESC
 			)
 	-- select * 
 	FROM empire_Staedion_Data.kcm.STN658_Ingevulde_gegevens AS kcm

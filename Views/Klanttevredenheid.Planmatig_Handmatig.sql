@@ -5,7 +5,8 @@ GO
 
 
 
-CREATE view [Klanttevredenheid].[Planmatig_Handmatig] as
+
+CREATE VIEW [Klanttevredenheid].[Planmatig_Handmatig] AS
 /* #########################################################################################
 -- info
 EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klanttevredenheid', 'Planmatig_Handmatig'
@@ -13,15 +14,15 @@ EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klan
 
 ######################################################################################### */    
 
-SELECT [Datum] = convert(DATE, kcm.[INGEVULDE GEGEVENS])
-       ,[Tijdstip] = convert(TIME, kcm.[INGEVULDE GEGEVENS])
+SELECT [Datum] = CONVERT(DATE, kcm.[INGEVULDE GEGEVENS])
+       ,[Tijdstip] = CONVERT(TIME, kcm.[INGEVULDE GEGEVENS])
        ,[Sleutel eenheid] = oge.lt_id
        ,[Eenheidnr] = kcm.eenheid
        ,[Sleutel cluster] = cluster.lt_id
        ,[Score] = kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion ]
-       ,[Suggesties 1] = convert(NVARCHAR(1024), kcm.[Uw tip(s):])
-       ,[Suggesties 2] = convert(NVARCHAR(1024), kcm.[Welke van deze onderdelen moeten wij volgens u als eerste verbet])
-       ,[Suggesties 3] = convert(NVARCHAR(1024), kcm.[Heeft u nog tips over hoe we onze dienstverlening bij het uitvoe])
+       ,[Suggesties 1] = CONVERT(NVARCHAR(1024), kcm.[Mijn tip is/tips zijn:])
+       ,[Suggesties 2] = CONVERT(NVARCHAR(1024), kcm.[Wat moeten wij als eerste verbeteren? U mag één antwoord geven#])
+       ,[Suggesties 3] = CONVERT(NVARCHAR(1024), kcm.[Heeft u nog tips over hoe we onze dienstverlening bij het uitvoe])
        ,[PLO nummer project]
        ,[Projectnaam]
        ,[Projectleider]
@@ -43,19 +44,19 @@ LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge
 LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster
        ON oge.mg_bedrijf = 'Staedion'
               AND cluster.Nr_ = kcm.clusternr
-WHERE year(kcm.[INGEVULDE GEGEVENS]) > 2019
+WHERE YEAR(kcm.[INGEVULDE GEGEVENS]) > 2019
 
 UNION
 
-SELECT [Datum] = convert(DATE, kcm.[INGEVULDE GEGEVENS])
-       ,[Tijdstip] = convert(TIME, kcm.[INGEVULDE GEGEVENS])
+SELECT [Datum] = CONVERT(DATE, kcm.[INGEVULDE GEGEVENS])
+       ,[Tijdstip] = CONVERT(TIME, kcm.[INGEVULDE GEGEVENS])
        ,[Sleutel eenheid] = oge.lt_id
        ,[Eenheidnr] = kcm.eenheid
        ,[Sleutel cluster] = cluster.lt_id
        ,[Score] = kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion ]
-       ,[Suggesties 1] = convert(NVARCHAR(1024), kcm.[Uw tip(s):])
-       ,[Suggesties 2] = convert(NVARCHAR(1024), kcm.[Welke van deze onderdelen moeten wij volgens u als eerste verbet])
-       ,[Suggesties 3] = convert(NVARCHAR(1024), kcm.[Heeft u nog tips over hoe we onze dienstverlening bij het uitvoe])
+       ,[Suggesties 1] = CONVERT(NVARCHAR(1024), kcm.[Uw tip(s):])
+       ,[Suggesties 2] = CONVERT(NVARCHAR(1024), kcm.[Welke van deze onderdelen moeten wij volgens u als eerste verbet])
+       ,[Suggesties 3] = CONVERT(NVARCHAR(1024), kcm.[Heeft u nog tips over hoe we onze dienstverlening bij het uitvoe])
        ,[PLO nummer project]
        ,[Projectnaam]
        ,[Projectleider]
@@ -77,7 +78,7 @@ LEFT JOIN empire_logic.dbo.lt_mg_oge AS oge
 LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster
        ON oge.mg_bedrijf = 'Staedion'
               AND cluster.Nr_ = kcm.clusternr
-WHERE year(kcm.[INGEVULDE GEGEVENS]) <= 2019
+WHERE YEAR(kcm.[INGEVULDE GEGEVENS]) <= 2019
 GO
 EXEC sp_addextendedproperty N'Auteur', N'JvdW', 'SCHEMA', N'Klanttevredenheid', 'VIEW', N'Planmatig_Handmatig', NULL, NULL
 GO

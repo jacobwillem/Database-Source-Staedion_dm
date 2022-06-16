@@ -7,6 +7,7 @@ GO
 
 
 
+
 CREATE view [Algemeen].[Marktwaarde]
 
 
@@ -41,6 +42,15 @@ with cte_basis as (
     Beleidswaarde = mw.Beleidswaarde,
     datum = '20201231'
   from empire_staedion_data.tms.marktwaardeoverzicht_31122020 as mw
+  union all
+  select
+    eenheidnr = mw.Eenheidnr,
+    marktwaarde = mw.[Netto marktwaarde],
+    leegwaarde = mw.Leegwaarde,
+    markthuur = mw.[Markthuur per maand],
+    Beleidswaarde = mw.Beleidswaarde,
+    datum = '20211231'
+  from empire_staedion_data.tms.marktwaardeoverzicht_31122021 as mw
 )
 select
   [Datum]               = cb.datum,

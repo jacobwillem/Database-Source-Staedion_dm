@@ -10,6 +10,8 @@ CREATE TABLE [Dashboard].[Indicator]
 [fk_proces_id] [int] NULL,
 [fk_berekeningswijze_id] [int] NULL,
 [fk_frequentie_id] [int] NULL,
+[fk_status_id] [int] NULL,
+[fk_prioriteit_id] [int] NULL,
 [Cumulatief] [bit] NULL,
 [Gemiddelde] [int] NULL,
 [Observatie] [bit] NULL CONSTRAINT [DF_Indicator_Observatie] DEFAULT ((0)),
@@ -20,10 +22,15 @@ CREATE TABLE [Dashboard].[Indicator]
 [Jaarnorm] [numeric] (12, 4) NULL,
 [procedure_actief] [bit] NULL,
 [procedure_naam] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL,
-[procedure_argument] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL,
+[procedure_argument] [nvarchar] (4000) COLLATE Latin1_General_CI_AS NULL,
 [procedure_opmerking] [ntext] COLLATE Latin1_General_CI_AS NULL,
 [controle_brontabel] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
-[Details] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL
+[Details] [nvarchar] (255) COLLATE Latin1_General_CI_AS NULL,
+[verversen_vanaf_1_1] [bit] NULL CONSTRAINT [DF__Indicator__verve__4E5F59F9] DEFAULT ((0)),
+[aantal_maanden_te_verversen] [smallint] NULL CONSTRAINT [DF__Indicator__aanta__4F537E32] DEFAULT ((2)),
+[Marge] [numeric] (12, 4) NULL,
+[fk_margetype_id] [int] NULL,
+[Weergaveformat_detail] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dashboard].[Indicator] ADD CONSTRAINT [PK_Indicator] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]

@@ -38,6 +38,7 @@ EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden]  staedion_dm, 'Een
 WIJZIGINGEN
 --------------------------------------------------------------------------------------------------------------------------
 20210517 Aangemaakt obv oude versie empire_staedion_data.dbo.ITVfnCLusterBouwblok
+20220513 conditie toegevoegd in subquery (where Eenheidnr_ ...)
 ########################################################################################################################## */
 RETURN 
 
@@ -61,6 +62,7 @@ AS (
 			--,Clusternaam 
 			,Clustersoort
 		FROM empire_data.dbo.Staedion$Cluster_OGE
+		where (eenheidnr_ = @Eenheidnr_ or @Eenheidnr_ is null)
 		) AS a
 	pivot(max(clusternr_) FOR clustersoort IN (
 				[FTCLUSTER]
@@ -94,6 +96,7 @@ AS (
 			,Clusternaam
 			,Clustersoort
 		FROM empire_data.dbo.Staedion$Cluster_OGE
+		where (eenheidnr_ = @Eenheidnr_ or @Eenheidnr_ is null)
 		) AS a
 	pivot(max(clusternaam) FOR clustersoort IN (
 				[FTCLUSTER]

@@ -67,6 +67,8 @@ begin try
 		,fk_eenheid_id
 		,fk_contract_id
 		,Clusternummer
+		,[Detail_01]
+		,[Detail_02]
 		)
 
 		SELECT			 [d_opzegging].datum
@@ -77,6 +79,8 @@ begin try
 						,[contract].fk_eenheid_id
 						,[contract].id
 						,eenheid.pmc_nr
+						,[Datail_01] = Eenheid.descr
+						,[Detail_02] = staedion_verhuurteam
 		FROM [empire_dwh].[dbo].[d_opzegging]
 		left outer join empire_dwh.dbo.[contract] on [d_opzegging].[fk_contract_id] = [contract].[id]
 		left outer join empire_dwh.dbo.eenheid on [contract].fk_eenheid_id = [eenheid].id

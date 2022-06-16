@@ -9,6 +9,8 @@ GO
 
 
 
+
+
 CREATE VIEW [Datakwaliteit].[CheckContractenLeegstandAangemaaktOp]
 AS
 /*
@@ -19,6 +21,10 @@ Filter: toekomstige leegstandsregels waarbij contractregel [Aangemaakt op] minde
 
 select * from [Datakwaliteit].[CheckContractenLeegstandAangemaaktOp]
 
+20220318 JvdW / MPE: komt niet vaak voor, 2 gevallen die nu worden opgehaald zijn ook niet schadelijk. Verfijning is lastig, maar even zo laten. 
+Marieke wordt hierover gemaild en kan dat dan handmatig beoordelen.
+
+
 */
 WITH cte_leegstaande_eenheden
 AS (
@@ -27,13 +33,13 @@ AS (
 		,Ingangsdatum
 		,[Aangemaakt op]
 		,Volgnr_
-		,Hulp_volgnr = row_number() OVER (
+		,Hulp_volgnr = ROW_NUMBER() OVER (
 			PARTITION BY Eenheidnr_
 			,[Customer No_] ORDER BY Volgnr_ DESC
 			)
 	FROM empire_Data.dbo.Staedion$Contract AS C
 	WHERE [Dummy Contract] = 0
-		AND [Ingangsdatum] > getdate()
+		AND [Ingangsdatum] > GETDATE()
 		AND [Customer No_] = ''
 	)
 	,cte_huidige_huurders
@@ -43,14 +49,14 @@ AS (
 		,Ingangsdatum
 		,[Aangemaakt op]
 		,Volgnr_
-		,Hulp_volgnr = row_number() OVER (
+		,Hulp_volgnr = ROW_NUMBER() OVER (
 			PARTITION BY Eenheidnr_
 			,[Customer No_] ORDER BY Volgnr_ DESC
 			)
 	FROM empire_Data.dbo.Staedion$Contract AS C
 	WHERE [Dummy Contract] = 0
-		AND [Ingangsdatum] <= getdate()
-		AND coalesce(nullif([Einddatum], '17530101'), '20990101') > getdate()
+		AND [Ingangsdatum] <= GETDATE()
+		AND COALESCE(NULLIF([Einddatum], '17530101'), '20990101') > GETDATE()
 		AND [Customer No_] <> ''
 	)
 SELECT Eenheidnr = BRON.Nr_
@@ -62,7 +68,7 @@ SELECT Eenheidnr = BRON.Nr_
 	,CLUS.Clusternr 
 	,CLUS.Clusternaam 
 	--Assetmanager = coalesce(CONT.Assetmanager, 'Onbekend')
-	,[Huurder] = coalesce(HRD.huurder1, 'Leegstand')
+	,[Huurder] = COALESCE(HRD.huurder1, 'Leegstand')
 	--   ,[Kalehuur] = coalesce(HPR.kalehuur, 0)
 	--   ,[Korting] = coalesce(HPR.nettohuur_incl_korting_btw, 0)
 	--,[Soort eenheid (corpodata)] = TT.[Analysis Group Code]
@@ -70,6 +76,7 @@ SELECT Eenheidnr = BRON.Nr_
 	--   ,CONTR.Ingangsdatum
 	--   ,CONTR.Einddatum
 	,[Controle-bevinding] = NULL
+	,HUID.Volgnr_
 FROM empire_data.dbo.staedion$oge AS BRON
 JOIN cte_leegstaande_eenheden AS LST ON LST.Eenheidnr_ = BRON.Nr_
 LEFT OUTER JOIN empire_Data.dbo.staedion$type AS TT ON TT.[Code] = BRON.[Type]
@@ -80,7 +87,7 @@ OUTER APPLY empire_staedion_data.[dbo].ITVfnCLusterBouwblok(BRON.Nr_) AS CLUS
 --OUTER APPLY empire_staedion_data.[dbo].[ITVfnHuurprijs](BRON.Nr_, CONTR.Ingangsdatum) AS HPR
 OUTER APPLY empire_staedion_data.[dbo].ITVfnContractaanhef(HUID.[Customer No_]) AS HRD
 WHERE BRON.[Common Area] = 0
-and LST.[Aangemaakt op] < HUID.[Aangemaakt op]
+AND LST.[Aangemaakt op] < HUID.[Aangemaakt op]
 	--AND TT.[Analysis Group Code] = 'WON ZELF'
 	--   AND BRON.[Begin exploitatie] <> '17530101'
 	--   AND BRON.[Einde exploitatie] = '17530101'

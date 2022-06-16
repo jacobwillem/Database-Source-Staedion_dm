@@ -5,6 +5,7 @@ GO
 
 
 
+
 CREATE VIEW [Dashboard].[vw_Normen2]
 AS
 SELECT 
@@ -13,5 +14,5 @@ SELECT
 	,N.[Datum]
 	,N.[Waarde]
 FROM [Dashboard].[Normen] AS N
-WHERE N.[fk_indicator_id] IN (SELECT DISTINCT [fk_indicator_id] FROM [Dashboard].[vw_Indicator])
+WHERE N.[fk_indicator_id] IN (SELECT DISTINCT [fk_indicator_id] FROM [Dashboard].[vw_Indicator2])
 GO

@@ -8,7 +8,8 @@ GO
 
 
 
-CREATE view [Klanttevredenheid].[Klacht_Handmatig] as
+
+CREATE VIEW [Klanttevredenheid].[Klacht_Handmatig] AS
 /* #########################################################################################
 -- info
 EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klanttevredenheid', 'Klacht'
@@ -23,14 +24,14 @@ EXEC [empire_staedion_data].[dbo].[dsp_info_object_en_velden] staedion_dm, 'Klan
 select count(*),avg(Score) from staedion_dm.[Klanttevredenheid].[Klacht_Handmatig] where year(Datum) = 2021
 
 ######################################################################################### */    
-SELECT [Datum] = convert(DATE, kcm.[INGEVULDE GEGEVENS])
-	,[Tijdstip] = convert(TIME, kcm.[INGEVULDE GEGEVENS])
+SELECT [Datum] = CONVERT(DATE, kcm.[INGEVULDE GEGEVENS])
+	,[Tijdstip] = CONVERT(TIME, kcm.[INGEVULDE GEGEVENS])
 	,[Postcode] = kcm.postcode
 	,[Sleutel eenheid] = oge.lt_id
 	,[Eenheidnr] = kcm.eenheidnr
 	,[Sleutel cluster] = cluster.lt_id
 	,Thuisteam = kcm.divisie
-	,[Score] = kcm.[Welk rapportcijfer geeft u Staedion voor de behandeling van uw k]
+	,[Score] = kcm.[Hoe tevreden bent u over de oplossing voor uw klacht? Geef een r]
 	,Klachtnummer = KCM.klachtnummer
 -- select * 
 FROM empire_staedion_data.kcm.STN417_Ingevulde_gegevens_Online AS kcm
@@ -43,8 +44,8 @@ LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON oge.mg_bedrijf = 'Staedio
 UNION
 
 
-SELECT [Datum] = convert(DATE, kcm.[INGEVULDE GEGEVENS])
-	,[Tijdstip] = convert(TIME, kcm.[INGEVULDE GEGEVENS])
+SELECT [Datum] = CONVERT(DATE, kcm.[INGEVULDE GEGEVENS])
+	,[Tijdstip] = CONVERT(TIME, kcm.[INGEVULDE GEGEVENS])
 	,[Postcode] = kcm.postcode
 	,[Sleutel eenheid] = oge.lt_id
 	,[Eenheidnr] = kcm.eenheidnr
@@ -63,8 +64,8 @@ LEFT JOIN empire_logic.dbo.lt_mg_cluster AS cluster ON oge.mg_bedrijf = 'Staedio
 UNION
 
 
-SELECT [Datum] = convert(DATE, kcm.[INGEVULDE GEGEVENS])
-	,[Tijdstip] = convert(TIME, kcm.[INGEVULDE GEGEVENS])
+SELECT [Datum] = CONVERT(DATE, kcm.[INGEVULDE GEGEVENS])
+	,[Tijdstip] = CONVERT(TIME, kcm.[INGEVULDE GEGEVENS])
 	,[Postcode] = kcm.postcode
 	,[Sleutel eenheid] = oge.lt_id
 	,[Eenheidnr] = kcm.eenheidnr

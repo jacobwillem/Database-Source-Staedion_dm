@@ -96,7 +96,7 @@ BEGIN TRY
 		DECLARE @Laaddatum as date
 		DECLARE @fk_indicator_id as int = 2030
 		DECLARE @Entiteit as nvarchar(50) = 'Eenheid'
-	    DECLARE @Attribuut as nvarchar(255) = 'Status VVE'
+	    DECLARE @Attribuut as nvarchar(255) = 'VVE-status'
 
 		select @parent_id = id from staedion_Dm.Datakwaliteit.Indicator where Omschrijving = @Entiteit;
 		--select @fk_indicator_id = id from staedion_Dm.Datakwaliteit.Indicator WHERE parent_id = @parent_id and Omschrijving = @Attribuut; 

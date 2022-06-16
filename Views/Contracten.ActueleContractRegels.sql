@@ -6,6 +6,7 @@ GO
 
 
 
+
 CREATE   view [Contracten].[ActueleContractRegels]  as
 /* #########################################################################################
 JvdW tbv PBI Service-abonnementen
@@ -33,13 +34,13 @@ AS (
        )
 SELECT Eenheidnr = C.[Eenheidnr_]
        ,Huurdernr = C.[Customer No_]
-	   ,Huurdernaam = C.Naam
+	     ,Huurdernaam = C.Naam
        ,Volgnummer = C.Volgnr_
        ,Elementnr = E.[Nr_]
        ,Bedrag = E.[Bedrag (LV)]
        ,Eenmalig = E.Eenmalig
        ,[Afwijking standaardprijs] = iif(CTE_ST.Wordt <> E.[Bedrag (LV)],'Afwijking',null )
-	   ,[Status contractregel] = CASE WHEN C.[Status] = 0 THEN 'Nieuw' ELSE CASE WHEN   C.[Status] = 1 then 'Huidig' else 'Oud' END end
+	     ,[status contractregel] = case when (c.[einddatum] = '1753-01-01' or c.[einddatum] >= getdate()) then 'Huidig' else 'Oud' end
 FROM empire_data.dbo.[Staedion$Contract] AS C
 INNER JOIN empire_data.dbo.[Staedion$Element] AS E
        ON C.[Eenheidnr_] = E.[Eenheidnr_]

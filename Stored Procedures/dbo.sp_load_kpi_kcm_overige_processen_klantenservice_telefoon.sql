@@ -11,7 +11,7 @@ CREATE PROCEDURE[dbo].[sp_load_kpi_kcm_overige_processen_klantenservice_telefoon
 as
 /* #################################################################################################################
 
-exec staedion_dm.[dbo].[sp_load_kpi_kcm_overige_processen_klantenservice_telefoon] '20200229'
+exec staedion_dm.[dbo].[sp_load_kpi_kcm_overige_processen_klantenservice_telefoon] '20211130'
 select * from empire_staedion_Data.etl.LogboekMeldingenProcedures
 select max(Datum), count(*) from staedion_dm.Dashboard.[RealisatieDetails] where fk_indicator_id = 1206
 select max(Datum), count(*) from staedion_dm.Dashboard.[Realisatie] where fk_indicator_id = 1206
@@ -22,6 +22,8 @@ WIJZIGINGEN
 ----------------------------------------------------------------------------------------------------------------
 20210201 JvdW: jaargang 2020 ongemoeid laten - vandaar extra conditie toegevoegd bij delete en insert
 20210607 PP: Clusternummer toegevoegd aan output
+20220110 JvdW: output is gewijzigd - andere naam voor score
++ omschrijving cast(cast(kcm.[InteractieID] as int) as varchar) veroorzaakte fout in verwerking november
 ################################################################################################################# */
 
 begin try
@@ -55,12 +57,13 @@ begin try
 		--,[Noemer]
 		)
 		select kcm.[INGEVULDE GEGEVENS] Datum, 
-			convert(int, kcm.[Welk rapportcijfer geeft u voor het telefonische contact met onz]) Waarde, 
+			convert(int, kcm.[Hoe tevreden bent u over het telefoongesprek met onze medewerker]) Waarde, 
 			getdate(), 
-			kcm.[Bouwblok] + ' ; ' + kcm.[Bouwbloknaam] + ' ; ' + cast(cast(kcm.[InteractieID] as int) as varchar) + ' ; ' + kcm.[Naam behandelend medewerker Staedion] [Omschrijving],
+			--kcm.[Bouwblok] + ' ; ' + kcm.[Bouwbloknaam] + ' ; ' + cast(cast(kcm.[InteractieID] as int) as varchar) + ' ; ' + kcm.[Naam behandelend medewerker Staedion] [Omschrijving],
+			kcm.[Bouwblok] + ' ; ' + kcm.[Bouwbloknaam] + ' ; ' + kcm.[InteractieID] + ' ; ' + kcm.[Naam behandelend medewerker Staedion] [Omschrijving],
 			@fk_indicator_id, convert(nvarchar(7),[clusternr])
 		from empire_staedion_data.kcm.STN420_Ingevulde_gegevens kcm 
-		where isnumeric(kcm.[Welk rapportcijfer geeft u voor het telefonische contact met onz]) = 1 and
+		where isnumeric(kcm.[Hoe tevreden bent u over het telefoongesprek met onze medewerker]) = 1 and
 		convert(date,kcm.[INGEVULDE GEGEVENS]) between dateadd(d, 1-day(@peildatum), @peildatum) and @peildatum
 		-- JvdW 20210201
 		and year(convert(date,kcm.[INGEVULDE GEGEVENS])) >= 2021

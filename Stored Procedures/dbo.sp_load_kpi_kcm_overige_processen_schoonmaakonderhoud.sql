@@ -23,6 +23,7 @@ WIJZIGINGEN
 ----------------------------------------------------------------------------------------------------------------
 20210201 JvdW: jaargang 2020 ongemoeid laten - vandaar extra conditie toegevoegd bij delete en insert
 20210607 PP: Clusternummer toegevoegd aan output
+20220110 JvdW: output csv is gewijzigd - andere naam voor score
 ################################################################################################################# */
 
 begin try
@@ -56,12 +57,12 @@ begin try
 		--,[Noemer]
 		)
 		select kcm.[INGEVULDE GEGEVENS] Datum, 
-			convert(int, kcm.[Staedion regelt de schoonmaak van de ruimtes die alle bewoners g]) Waarde, 
+			convert(int, kcm.[Staedion regelt de schoonmaak van de gemeenschappelijke ruimtes ]) Waarde, 
 			getdate(), 
 			kcm.[SVKN-nummer] + ' ; ' + kcm.[SVKN-naam] + ' ; ' + kcm.Contractpartner  [Omschrijving],
 			@fk_indicator_id, convert(nvarchar(7),[clusternr])
 		from empire_staedion_data.kcm.STN660_Ingevulde_gegevens kcm 
-		where isnumeric(kcm.[Staedion regelt de schoonmaak van de ruimtes die alle bewoners g]) = 1 and
+		where isnumeric(kcm.[Staedion regelt de schoonmaak van de gemeenschappelijke ruimtes ]) = 1 and
 		convert(date,kcm.[INGEVULDE GEGEVENS]) between dateadd(d, 1-day(@peildatum), @peildatum) and @peildatum
 		-- JvdW 20210201
 		and year(convert(date,kcm.[INGEVULDE GEGEVENS])) >= 2021

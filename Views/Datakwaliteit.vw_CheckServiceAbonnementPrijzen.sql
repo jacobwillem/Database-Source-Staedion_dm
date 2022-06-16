@@ -7,6 +7,7 @@ GO
 
 
 
+
 CREATE VIEW [Datakwaliteit].[vw_CheckServiceAbonnementPrijzen]
 AS
 
@@ -14,7 +15,7 @@ AS
 WITH cte_ActueleContractRegels
 AS (
        SELECT Eenheidnr, Huurdernr, Huurdernaam, Volgnummer, Elementnr, Bedrag, Eenmalig, [Afwijking standaardprijs], [Status contractregel], [Ingangsdatum]
-       FROM staedion_dm.[Contracten].NieuwsteContractRegels
+       FROM staedion_dm.[Contracten].vw_NieuwsteContractRegels
        WHERE Elementnr IN (
                      '404'
                      ,'405'

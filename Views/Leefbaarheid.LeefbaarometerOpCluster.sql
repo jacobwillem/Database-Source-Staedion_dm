@@ -5,6 +5,7 @@ GO
 
 
 
+
 CREATE VIEW [Leefbaarheid].[LeefbaarometerOpCluster]
 AS
 WITH CTE_LBMG
@@ -38,6 +39,7 @@ AS (
 			,[2018] = round([L18_mean], 0)
 			,[2019] = round([L18_mean], 0)
 			,[2020] = round([L18_mean], 0)
+			,[2021] = round([L18_mean], 0)
 		FROM [empire_staedion_data].[bik].[Leefbaarometer_gridscore]
 		) p
 	UNPIVOT(Klasse FOR Jaar IN (
@@ -60,6 +62,7 @@ AS (
 				,[2018]
 				,[2019]
 				,[2020]
+				,[2021]
 				)) AS unpvt
 	)
 SELECT *

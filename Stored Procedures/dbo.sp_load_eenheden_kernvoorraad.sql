@@ -20,8 +20,40 @@ begin
 
     delete from Eenheden.Kernvoorraad where month(Peildatum) = month(@datum) and YEAR(peildatum) = YEAR(@datum)
 
-    insert into Eenheden.Kernvoorraad
-    select * FROM staedion_dm.Eenheden.[fn_Kernvoorraad](@datum) 
+INSERT INTO Eenheden.Kernvoorraad
+(
+    [Opmerking],
+    [Kernvoorraad],
+    [Eenheidnr],
+    [Netto huur],
+    [Streefhuur],
+    [Plaats],
+    [Gemeente],
+    [Corpodatatype],
+    [Geliberaliseerd contract],
+    [Jaar contract],
+    [Doelgroepcode],
+    [Verhuurteam],
+    [Huurprijsklasse corpodata],
+    [Peildatum],
+    [Sleutel huurklasse]
+)
+SELECT [Opmerking],
+       [Kernvoorraad],
+       [Eenheidnr],
+       [Netto huur],
+       [Streefhuur],
+       [Plaats],
+       [Gemeente],
+       [Corpodatatype],
+       [Geliberaliseerd contract],
+       [Jaar contract],
+       [Doelgroepcode],
+       [Verhuurteam],
+       [Huurprijsklasse corpodata],
+       [Peildatum],
+       [Sleutel huurklasse]
+FROM staedion_dm.Eenheden.[fn_Kernvoorraad](@datum);
         
     fetch next from ref_cursor into @datum
         

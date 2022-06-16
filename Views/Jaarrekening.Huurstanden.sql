@@ -5,6 +5,7 @@ GO
 
 
 
+
 CREATE VIEW [Jaarrekening].[Huurstanden]
 AS
 WITH CTE_INTRZOR
@@ -26,14 +27,14 @@ SELECT [Peildatum]
 	,[Juridisch eigenaar]
 	,[Intrm zorg type] = CTE_INTRZOR.[Intrm zorg type]
 	,Huurdernummer = Meetwaarden.Huurdernr
-    ,Huurdernaam = case when Meetwaarden.[Eenheidstatus_id] = 0 then 'Leegstand' when KLANT.[Name] = '' and Meetwaarden.Huurdernr = 'KLNT-0070870' then 'Lady Sport' when KLANT.[Name] = '' and Meetwaarden.Huurdernr = 'KLNT-0082389' then 'VKO Transport' else KLANT.[Name] end
+    ,Huurdernaam = CASE WHEN Meetwaarden.[Eenheidstatus_id] = 0 THEN 'Leegstand' WHEN KLANT.[Name] = '' AND Meetwaarden.Huurdernr = 'KLNT-0070870' THEN 'Lady Sport' WHEN KLANT.[Name] = '' AND Meetwaarden.Huurdernr = 'KLNT-0082389' THEN 'VKO Transport' ELSE KLANT.[Name] END
 FROM [staedion_dm].[Eenheden].[Meetwaarden]
 JOIN staedion_dm.Eenheden.Bedrijf ON Meetwaarden.Bedrijf_id = Bedrijf.Bedrijf_id
 JOIN staedion_dm.Eenheden.Eigenschappen ON Meetwaarden.Eigenschappen_id = Eigenschappen.Eigenschappen_id
 JOIN [staedion_dm].[Eenheden].[Exploitatiestatus] ON Meetwaarden.Exploitatiestatus_id = Exploitatiestatus.id
-JOIN [staedion_dm].Dashboard.vw_Clusterlocatie ON Eigenschappen.[FT clusternr] = vw_Clusterlocatie.Clusternummer
-Left outer join CTE_INTRZOR on CTE_INTRZOR.Eenheidnummer = Meetwaarden.Eenheidnr
-left outer join empire_data.dbo.Customer as KLANT on KLANT.No_ = Meetwaarden.Huurdernr
-WHERE Peildatum >= DATEFROMPARTS(YEAR(getdate()) - 1, 1, 1)
+LEFT OUTER JOIN [staedion_dm].Dashboard.vw_Clusterlocatie ON Eigenschappen.[FT clusternr] = vw_Clusterlocatie.Clusternummer
+LEFT OUTER JOIN CTE_INTRZOR ON CTE_INTRZOR.Eenheidnummer = Meetwaarden.Eenheidnr
+LEFT OUTER JOIN empire_data.dbo.Customer AS KLANT ON KLANT.No_ = Meetwaarden.Huurdernr
+WHERE Peildatum >= DATEFROMPARTS(YEAR(GETDATE()) - 1, 1, 1)
 	AND exploitatiestatus = 'In exploitatie'
 GO

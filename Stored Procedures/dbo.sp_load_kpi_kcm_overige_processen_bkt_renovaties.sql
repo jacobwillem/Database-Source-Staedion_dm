@@ -11,7 +11,7 @@ CREATE PROCEDURE[dbo].[sp_load_kpi_kcm_overige_processen_bkt_renovaties](
 as
 /* #################################################################################################################
 
-exec staedion_dm.[dbo].[sp_load_kpi_kcm_overige_processen_bkt_renovaties] '20200430'
+exec staedion_dm.[dbo].[sp_load_kpi_kcm_overige_processen_bkt_renovaties] '20211231'
 -- select * from empire_staedion_Data.etl.LogboekMeldingenProcedures order by Begintijd desc
 declare @fk_indicator_id as smallint
 	select @fk_indicator_id = id from  [Dashboard].[Indicator] where lower([Omschrijving]) like '%BKT%renovaties%'
@@ -28,6 +28,7 @@ WIJZIGINGEN
 ----------------------------------------------------------------------------------------------------------------
 20210201 JvdW: jaargang 2020 ongemoeid laten - vandaar extra conditie toegevoegd bij delete en insert
 20210607 PP: Clusternummer toegevoegd aan output
+20220117 JvdW: andere vraag leidt tot net andere uitkomst en is waar het om draait - zie kcm website + lijst vragen 2022
 ################################################################################################################# */
 
 begin try
@@ -61,12 +62,12 @@ begin try
 		--,[Noemer]
 		)
 		select kcm.[INGEVULDE GEGEVENS] Datum, 
-			convert(int, kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion ]) Waarde, 
+			convert(int, kcm.[Wat vond u van de manier waarop de aannemer de verbouwing heeft ]) Waarde, 
 			getdate(), 
 			kcm.[Bouwblok] + ' ; ' + kcm.[Bouwbloknaam] + ' ; ' + kcm.[Leveranciersnr] + ' ; ' + kcm.[Leveranciersnaam] + ' ; ' + kcm.[Onderhoudssjabloon] [Omschrijving],
 			@fk_indicator_id, convert(nvarchar(7),[clusternr])
 		from empire_staedion_data.kcm.STN647_Ingevulde_gegevens kcm 
-		where isnumeric(kcm.[Welk rapportcijfer geeft u voor de dienstverlening van Staedion ]) = 1 and
+		where isnumeric(kcm.[Wat vond u van de manier waarop de aannemer de verbouwing heeft ]) = 1 and
 		convert(date,kcm.[INGEVULDE GEGEVENS]) between dateadd(d, 1-day(@peildatum), @peildatum) and @peildatum
 		-- JvdW 20210201
 		and year(convert(date,kcm.[INGEVULDE GEGEVENS])) >= 2021

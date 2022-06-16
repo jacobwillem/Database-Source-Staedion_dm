@@ -6,6 +6,8 @@ GO
 
 
 
+
+
 CREATE VIEW [Dashboard].[vw_RealisatiePrognose2]
 AS
 	SELECT
@@ -30,6 +32,7 @@ AS
 		,[Clusternummer] = R.[clusternummer]
 		,[Prognose] = 0
 	FROM [Dashboard].[RealisatieDetails] AS R
+  --where fk_indicator_id between 1500 and 1550
 
 	UNION
 
@@ -63,4 +66,32 @@ AS
 	  AND MONTH(RD.[Datum]) = MONTH(P.[Datum])
 	)
 
+	/*
+	UNION
+
+	SELECT
+		 [id] = (ROW_NUMBER() OVER (ORDER BY I.[id]) + 2000000000000)
+		,[fk_indicator_id] = I.[id]
+		,[Datum] = CAST(GETDATE() AS DATE)
+		,[Laaddatum] = GETDATE()
+		,[Waarde] = S.[id]
+		,[Teller] = NULL
+		,[Noemer] = NULL
+		,[Omschrijving] = S.[Omschrijving]
+		,[Detail_01] = NULL
+		,[Detail_02] = NULL
+		,[Detail_03] = NULL
+		,[Detail_04] = NULL
+		,[Detail_05] = NULL
+		,[Detail_06] = NULL
+		,[Detail_07] = NULL
+		,[Detail_08] = NULL
+		,[Detail_09] = NULL
+		,[Detail_10] = NULL
+		,[Clusternummer]  = NULL
+		,[Prognose] = 0
+	FROM [Dashboard].[Indicator] AS I
+	INNER JOIN [Dashboard].[Status] AS S ON S.[id] = I.[fk_status_id]
+	AND S.[Omschrijving] <> 'Gereed'
+	*/
 GO

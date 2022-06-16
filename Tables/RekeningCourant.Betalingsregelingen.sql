@@ -41,7 +41,8 @@ CREATE TABLE [RekeningCourant].[Betalingsregelingen]
 [Klant adres] [nvarchar] (70) COLLATE Latin1_General_CI_AS NULL,
 [Klant postcode] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
 [Klant plaats] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
-[Documentdatum] [date] NULL
+[Documentdatum] [date] NULL,
+[Aangemaakt door] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
 ) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [betalingsregelingen01] ON [RekeningCourant].[Betalingsregelingen] ([Peildatum], [Bedrijf_id]) ON [PRIMARY]

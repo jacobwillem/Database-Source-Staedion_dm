@@ -7,6 +7,9 @@ GO
 
 
 
+
+
+
 CREATE VIEW [Datakwaliteit].[vw_NaamgevingKlantenHuishoudkaart] AS
 /* ##############################################################################################################################
 --------------------------------------------------------------------------------------------------------------------------
@@ -140,33 +143,15 @@ AS (SELECT DISTINCT
            Huurdernaam,
            Ingangsdatum
     --FROM [Contracten].[NieuwsteContractRegels]
-    FROM [Contracten].[NieuwsteContractRegelsZonderStaedionBredeElementen])
-SELECT BASIS.Eenheidnr,
-       OGE.Straatnaam + '' + OGE.Huisnr_ + ' ' + OGE.Toevoegsel AS [Adres OGE],
-       BASIS.Huurdernr,
-       Ingangsdatum AS [Meest recente contractregel uit Contractentabel],
+    FROM [Contracten].[vw_NieuwsteContractRegelsZonderStaedionBredeElementen])
+SELECT Ingangsdatum AS [Meest recente contractregel uit Contractentabel],
        CONT.No_ AS [Huishoudkaartnr],
        BASIS.Huurdernaam AS [Huurdernaam contractkaart],
        CONT.[Name] AS [Huurdernaam huishoudkaart],
-       CASE OGE.[status]
-           WHEN 0 THEN
-               'Leegstand'
-           WHEN 1 THEN
-               'Uit beheer'
-           WHEN 2 THEN
-               'Renovatie'
-           WHEN 3 THEN
-               'Verhuurd'
-           WHEN 4 THEN
-               'Administratief'
-           WHEN 5 THEN
-               'Verkocht'
-           WHEN 6 THEN
-               'In ontwikkeling'
-       END AS [Status eenheidskaart]
-	   ,CASE WHEN CONT.[Name] LIKE '%e.a.%' AND BASIS.Huurdernaam NOT LIKE '%e.a.%'
+
+	   CASE WHEN CONT.[Name] LIKE '%e.a.%' AND BASIS.Huurdernaam NOT LIKE '%e.a.%'
 			THEN 'Prio 1: medehuurder erbij ?'
-			ELSE CASE WHEN CONT.[Name] not LIKE '%e.a.%' AND BASIS.Huurdernaam LIKE '%e.a.%'
+			ELSE CASE WHEN CONT.[Name] NOT LIKE '%e.a.%' AND BASIS.Huurdernaam LIKE '%e.a.%'
 				THEN 'Prio 2: evt correctie huishoudkaart/contractregel ?' 
 				ELSE CASE WHEN LEN(REPLACE(REPLACE(REPLACE(BASIS.Huurdernaam, 'De heer/mevrouw ', ''), 'De heer ', ''),'Mevrouw ','')) 
 								- LEN(REPLACE(REPLACE(REPLACE(REPLACE(BASIS.Huurdernaam, 'De heer/mevrouw ', ''), 'De heer ', ''),'Mevrouw ',''), ' ',''))
@@ -174,7 +159,25 @@ SELECT BASIS.Eenheidnr,
 								LEN(CONT.[Name]) - LEN(REPLACE(CONT.[Name],' ',''))
 								AND REPLACE(CONT.[Name], ' ','') = REPLACE( REPLACE(REPLACE(REPLACE(BASIS.Huurdernaam, 'De heer/mevrouw ', ''), 'De heer ', ''),'Mevrouw ',''), ' ','') 
 							THEN 'Prio 3: verschil in aantal spaties' END END END
-				AS Prioriteit 
+				AS Omschrijving, 
+	   OGE.straatnaam + ' ' + OGE.huisnr_ + ' ' + OGE.Toevoegsel AS [Adres eenheid],
+       CAST(GETDATE() AS DATE) AS [Gegenereerd op],
+
+       -- tbv insert in RealisatieDetails tabel
+       1 AS Waarde,
+       CAST(GETDATE() AS DATE) AS Laaddatum,
+	   NULL AS Bevinding ,
+       NULL AS Teller,
+       NULL AS Noemer,
+       OGE.Nr_ AS eenheidnr,
+       BASIS.Huurdernr,
+       CONVERT(DATE, NULL) AS datEinde,
+       CONVERT(DATE, NULL) AS datIngang,
+       NULL AS Hyperlink,
+       NULL AS Gebruiker,
+	   CUST.No_ AS Klantnr,
+       CONT.No_ AS Relatienr
+
 FROM cte_basis AS BASIS
     JOIN empire_data.dbo.Customer AS CUST
         ON CUST.No_ = BASIS.Huurdernr

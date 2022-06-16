@@ -122,6 +122,9 @@ BEGIN TRY
 							,[Omschrijving]
 							,fk_indicator_id
 							,clusternummer
+							,detail_01
+							,detail_02
+							,detail_03
 							)
 					SELECT	[Laaddatum] = CONVERT(date,GETDATE())
 								,[Waarde] = CASE @Teller 
@@ -138,9 +141,13 @@ BEGIN TRY
 												WHEN 11 THEN COALESCE([Nov], 0)
 												WHEN 12 THEN COALESCE([Dec], 0) END
 								,[Datum] = EOMONTH(DATEFROMPARTS(YEAR(@Peildatum),@Teller,1))
-								,[Omschrijving] = BASIS.Title
+								,[Omschrijving] = CONCAT(BASIS.Title,' ; ',Projectnummer,' ; ',Projectmanager)
 								,@fk_indicator_id
                                 ,clusternummer = case when left([FT-cluster],7) like 'FT-[0-9][0-9][0-9][0-9]%' then left([FT-cluster],7) else '' end                                
+								,Projectnummer
+								,Projectmanager
+								,BASIS.TypeProject
+					-- select top 10 *
 					from	staedion_dm.Sharepoint.AantallenStartBouwOplevering as BASIS
 					WHERE	(
 								(BASIS.[TypeProject] in ('Nieuwbouw', 'Transformatie') and  @SoortProject = 'Nieuwbouw')

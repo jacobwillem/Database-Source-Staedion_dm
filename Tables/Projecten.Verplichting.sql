@@ -16,7 +16,8 @@ CREATE TABLE [Projecten].[Verplichting]
 [verplicht_excl_btw] [decimal] (12, 2) NULL,
 [Leveranciersnr] [nvarchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [Omschrijving] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
-[Omschrijving 2] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
+[Omschrijving 2] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[Verwachte ontvangstdatum] [date] NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Projecten].[Verplichting] ADD CONSTRAINT [PK_Verplichting] PRIMARY KEY CLUSTERED ([id]) ON [PRIMARY]

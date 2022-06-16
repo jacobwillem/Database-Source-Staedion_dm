@@ -24,6 +24,9 @@ CREATE TABLE [Rapport].[Specificatie_Grootboekposten_Jur_Eig]
 [Toegerekende post ok] [bit] NULL,
 [Omschrijving] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
 [Classificatie] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
-[Eigenaar] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL
+[Eigenaar] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[bedrag_incl_evt_btw] [decimal] (12, 2) NULL,
+[opmerking] [nvarchar] (100) COLLATE Latin1_General_CI_AS NULL,
+[gegenereerd] [datetime] NULL
 ) ON [PRIMARY]
 GO

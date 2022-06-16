@@ -2,8 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-
 CREATE function [Huuraanpassing].[fn_CollectieveContracten] (@Tijdvak nvarchar(20) = null, @BatchCollectief nvarchar(20) = 'BRIEFCOLL' ) 
 returns table 
 as
@@ -78,10 +76,11 @@ INCLUDE ([Volgnummer],[BTW-productboekingsgroep],[Soort],[Bedrag (LV)],[Elements
 
 ################################################################################################################################# */
 RETURN
+-- declare @Tijdvak nvarchar(20) = null, @BatchCollectief nvarchar(20) = 'BRIEFCOLL' ;
 WITH CTE_Tijdvak
 AS (
        SELECT Tijdvak = coalesce(@Tijdvak, convert(NVARCHAR(9), left(year(getdate()), 4) + '-' + left(year(dateadd(yy, 1, getdate())), 4)))
-			 ,[Gegenereerd] = (select max([Preparation Date-Time]) from staedion_dm.Huuraanpassing.[staedion$OGE Rent Increase])
+			 ,[Gegenereerd] = (select max([Preparation Date-Time]) from staedion_dm.Huuraanpassing.[staedion$OGE Rent Increase] )
 
        )
 SELECT Tijdvak = SIM.[Period Code]
@@ -110,14 +109,14 @@ SELECT Tijdvak = SIM.[Period Code]
        ,[Brutohuur 0107 contractregel incl btw] = convert(FLOAT, ITVF2.brutohuur_inclbtw)
 	   ,[Gegenereerd] = (select [Gegenereerd] from CTE_Tijdvak)
 -- select top 10 OGE.*
--- select count(*), count(distinct OGE.Nr_)
+-- count(*), count(distinct OGE.Nr_)
 FROM staedion_dm.Huuraanpassing.[Staedion$oge] AS OGE
-LEFT OUTER JOIN staedion_dm.Huuraanpassing.[staedion$OGE Rent Increase] AS SIM
+LEFT OUTER JOIN staedion_dm.Huuraanpassing.[staedion$OGE Rent Increase] AS SIM 
        ON SIM.[Period Code] = (
                      SELECT Tijdvak
                      FROM CTE_Tijdvak
-                     )
-              AND SIM.[Realty Object No_] = OGE.Nr_
+                     ) collate database_Default
+              AND SIM.[Realty Object No_] = OGE.Nr_ collate database_Default
 LEFT OUTER JOIN staedion_dm.Huuraanpassing.[staedion$Contract] AS CONTR
        ON CONTR.Eenheidnr_ = OGE.Nr_
               -- AND SIM.[Contract Entry No_] = CONTR.Volgnr_					-- te gebruiken als 1-7-regels nog niet zijn doorgevoerd

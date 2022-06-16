@@ -31,14 +31,14 @@ BEGIN TRY
 
 		set	@start =current_timestamp
 		
-		select @fk_indicator_id = min(id) from  [Dashboard].[Indicator] where lower([Omschrijving]) like '%uurachterstand%zittende%huurder%'
+		select @fk_indicator_id = 1500 -- min(id) from  [Dashboard].[Indicator] where lower([Omschrijving]) like '%uurachterstand%zittende%huurder%'
 
 		declare @sql nvarchar(1000) = 'exec [backup_empire_dwh].[dbo].[dsp_rs_voorziening_debiteuren] ''' + convert(varchar(10), @peildatum, 120) + ''', ' + convert(nvarchar(10), @fk_indicator_id)
 
 		exec (@sql)
 	
   -- Samenvatting opvoeren tbv dashboards
-	delete from staedion_dm.dashboard.Realisatie where fk_indicator_id in (@fk_indicator_id, @fk_indicator_id + 10) and datum between dateadd(d, 1-day(@peildatum), @peildatum) and eomonth(@peildatum)
+	delete from staedion_dm.dashboard.Realisatie where fk_indicator_id in (1500, 1505, 1506, 1507, 1508, 1509, 1510, 1515, 1516, 1517, 1518, 1519, 1527, 1528, 1529) and datum between dateadd(d, 1-day(@peildatum), @peildatum) and eomonth(@peildatum)
 
 	insert into staedion_dm.dashboard.Realisatie (fk_indicator_id, Datum, Waarde, Laaddatum)
 		select fk_indicator_id, Datum, sum(teller) / sum(noemer), max(Laaddatum)

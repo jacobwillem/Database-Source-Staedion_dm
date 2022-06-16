@@ -1,0 +1,17 @@
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+
+
+
+
+
+
+
+CREATE VIEW [Dashboard].[vw_Tooltip]
+AS
+
+SELECT [Tooltip] = NULL
+
+GO

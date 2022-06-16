@@ -5,11 +5,7 @@ GO
 
 
 
-
-
-
-
-CREATE view [Verhuur].[Verantwoordingen] as
+CREATE VIEW [Verhuur].[Verantwoordingen] AS
 /* ##############################################################################################################################
 --------------------------------------------------------------------------------------------------------------------------
 METADATA
@@ -21,6 +17,10 @@ WIJZIGINGEN
 > bepalend is nu of verhuring plaatsvindt aan niet-primaire doelgroep, zijnde verhuringen vrije sector of hoog inkomen
 > controle-opmerking uitgebreid
 20210408 MV [Soort inkomen], Inkomensgrens + Aandeel toegevoegd
+20220118 JvdW Naamswijziging Verhuurteam 3 - Studenten > Verhuurteam - Studenten
+20220124 22 01 250 Fout in verversen PBI Mutatiegraad
+> dubbele regels ivm ophalen juridisch eigenaar: cte toegevoegd + in join vergeleken met ingangsdatum huurcontract
+
 --------------------------------------------------------------------------------------------------------------------------
 TEST
 --------------------------------------------------------------------------------------------------------------------------
@@ -109,26 +109,36 @@ SELECT DISTINCT fk_wht_passendheid_id FROM empire_dwh.dbo.f_verantwoording_verhu
 
 
 
-
-
-
 ################################################################################################################################## */    
-with CTE_eenzijdige_wijken
-     as (select [Soort wijk] = case
-                                   when CBS.id in('BU05182569', 'BU05182567', 'BU05182561') -- Mariahoeve en Marlot
-                                        or CBS.id in('BU05182718', 'BU05182763', 'BU05182762') -- Stationsbuurt
-                                        or CBS.id in('BU05182811', 'BU05182814') -- Centrum
-                                        or CBS.id in('BU05183033', 'BU05183032', 'BU05183034') -- Transvaalkwartier'
-                                        or CBS.id in('BU05183398', 'BU05183387', 'BU05183396') -- Bouwlust en Vrederust 
-                                        or CBS.id in('BU05183489', 'BU05183488', 'BU05183480') -- Morgenstond
-                                        or CBS.id in('BU05183638', 'BU05183637', 'BU05183639') -- Moerwijk
-                                        or CBS.id in('BU05183822', 'BU05183819', 'BU05183826') -- Laakkwartier
-                                   then 'Eenzijdige wijk'
-                                   else 'Geen eenzijdige wijk'
-                               end, 
+WITH CTE_eenzijdige_wijken
+     AS (SELECT [Soort wijk] = CASE
+                                   WHEN CBS.id IN('BU05182569', 'BU05182567', 'BU05182561') -- Mariahoeve en Marlot
+                                        OR CBS.id IN('BU05182718', 'BU05182763', 'BU05182762') -- Stationsbuurt
+                                        OR CBS.id IN('BU05182811', 'BU05182814') -- Centrum
+                                        OR CBS.id IN('BU05183033', 'BU05183032', 'BU05183034') -- Transvaalkwartier'
+                                        OR CBS.id IN('BU05183398', 'BU05183387', 'BU05183396') -- Bouwlust en Vrederust 
+                                        OR CBS.id IN('BU05183489', 'BU05183488', 'BU05183480') -- Morgenstond
+                                        OR CBS.id IN('BU05183638', 'BU05183637', 'BU05183639') -- Moerwijk
+                                        OR CBS.id IN('BU05183822', 'BU05183819', 'BU05183826') -- Laakkwartier
+                                   THEN 'Eenzijdige wijk'
+                                   ELSE 'Geen eenzijdige wijk'
+                               END, 
                 [sleutel buurt] = CBS.id, 
                 [Buurt] = CBS.descr
-         from backup_empire_dwh.dbo.cbsbuurt as CBS),
+         FROM backup_empire_dwh.dbo.cbsbuurt AS CBS),
+		 cte_juridisch_eigenaar AS 
+			 (SELECT  CONT.id AS fk_contract_id, O.Nr_ AS Eenheidnr, JUR.[Start Date], CON.[Name] AS [Juridisch eigenaar], CONT.dt_ingang, ROW_NUMBER() OVER (PARTITION BY O.Nr_ , CONT.dt_ingang ORDER BY JUR.[Start Date] DESC) AS Volgnr
+			 FROM	  empire_Data.dbo.staedion$OGE AS O
+			 JOIN	  empire_data.dbo.Staedion$Realty_Object_Owner_Supervisor AS JUR
+			 ON		  O.Nr_ = JUR.[Realty Object No_]
+			 AND	  O.[Common area] = 0
+			 JOIN	  empire_data.dbo.Contact AS CON 
+			 ON		  CON.[No_] = JUR.[Owner]
+			 JOIN	  backup_empire_dwh.dbo.[contract] AS CONT
+			 ON		  CONT.bk_eenheidnr = O.Nr_
+			 AND      CONT.dt_ingang <= JUR.[Start Date]
+			 --WHERE O.Nr_ = 'OGEH-0057227'
+			 ),
      --,
      --cte_contractwijzigingen as 
      --(SELECT [Customer No_]
@@ -139,44 +149,46 @@ with CTE_eenzijdige_wijken
 
 	 -- BEGIN 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
 	 CTE_korting_leegstandsbeheer
-	 as (select [fk_contract_id] = CONT.id, CONT.dt_ingang
-		   from backup_empire_dwh.dbo.[contract] as CONT
-		   join empire_data.dbo.Staedion$Element E on CONT.volgnummer = E.Volgnummer
-		    and CONT.bk_eenheidnr = E.Eenheidnr_
-		    and E.Nr_ = '064'
+	 AS (SELECT [fk_contract_id] = CONT.id, CONT.dt_ingang
+		   FROM backup_empire_dwh.dbo.[contract] AS CONT
+		   JOIN empire_data.dbo.Staedion$Element E ON CONT.volgnummer = E.Volgnummer
+		    AND CONT.bk_eenheidnr = E.Eenheidnr_
+		    AND E.Nr_ = '064'
 	 ),
 
 	 CTE_uitzondering
-	 as (
-	 select  F.[fk_contract_id]
-			,[Huishouden] = case
-								when F.inkomenscategorie_passendheid like '1-pers%; niet AOW%' then 'EPHH'
-								when F.inkomenscategorie_passendheid like '2-pers%; niet AOW%' then 'MPHH2'
-								when F.inkomenscategorie_passendheid like 'meerpers%; niet AOW%' then 'MPHH3'
-								when F.inkomenscategorie_passendheid like '1-pers%; AOW%' then 'EPOHH'
-								when F.inkomenscategorie_passendheid like '2-pers%; AOW%' then 'MPOHH2'
-								when F.inkomenscategorie_passendheid like 'meerpers%; AOW%' then 'MPOHH3'
-								else null
-							end
-			,[Korting leegstandsbeheer] = iif(K.fk_contract_id is not null, 1, 0)
-			,[dt_ingang_jaar] = year(CONT.dt_ingang)
-	 from backup_empire_dwh.dbo.[contract] as CONT
-          left outer join backup_empire_dwh.dbo.f_verantwoording_verhuring as F on CONT.id = F.fk_contract_id
-		  left outer join empire_staedion_data.dbo.Passendtoewijzen_Uitzondering U on year(F.dt_start_contract) = U.Jaar and U.Eenheidnummer = F.bk_eenheidnr_
-		  left outer join CTE_korting_leegstandsbeheer K on CONT.id = K.fk_contract_id and CONT.dt_ingang = K.dt_ingang
-	 where F.[fk_contract_id] not in ('', '-1')
-	 and F.contract_aanwezig <> 'Contract vervallen'
-	 and U.Eenheidnummer is null
+	 AS (
+	 SELECT  F.[fk_contract_id]
+			,[Huishouden] = CASE
+								WHEN F.inkomenscategorie_passendheid LIKE '1-pers%; niet AOW%' THEN 'EPHH'
+								WHEN F.inkomenscategorie_passendheid LIKE '2-pers%; niet AOW%' THEN 'MPHH2'
+								WHEN F.inkomenscategorie_passendheid LIKE 'meerpers%; niet AOW%' THEN 'MPHH3'
+								WHEN F.inkomenscategorie_passendheid LIKE '1-pers%; AOW%' THEN 'EPOHH'
+								WHEN F.inkomenscategorie_passendheid LIKE '2-pers%; AOW%' THEN 'MPOHH2'
+								WHEN F.inkomenscategorie_passendheid LIKE 'meerpers%; AOW%' THEN 'MPOHH3'
+								ELSE NULL
+							END
+			,[Korting leegstandsbeheer] = IIF(K.fk_contract_id IS NOT NULL, 1, 0)
+			,[dt_ingang_jaar] = YEAR(CONT.dt_ingang)
+	 FROM backup_empire_dwh.dbo.[contract] AS CONT
+          LEFT OUTER JOIN backup_empire_dwh.dbo.f_verantwoording_verhuring AS F ON CONT.id = F.fk_contract_id
+		  LEFT OUTER JOIN empire_staedion_data.dbo.Passendtoewijzen_Uitzondering U ON YEAR(F.dt_start_contract) = U.Jaar AND U.Eenheidnummer = F.bk_eenheidnr_
+		  LEFT OUTER JOIN CTE_korting_leegstandsbeheer K ON CONT.id = K.fk_contract_id AND CONT.dt_ingang = K.dt_ingang
+	 WHERE F.[fk_contract_id] NOT IN ('', '-1')
+	 AND F.contract_aanwezig <> 'Contract vervallen'
+	 AND U.Eenheidnummer IS NULL
 	 )
 	 -- EIND 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
 
 	 --select * from CTE_uitzondering where [Korting leegstandsbeheer] = 1 and huishouden is not null
 
-     select [Datum ingang contract] = coalesce(CONT.dt_ingang, F.dt_start_contract), 
+     SELECT [Datum ingang contract] = COALESCE(CONT.dt_ingang, F.dt_start_contract), 
             [Contract aanwezig] = F.contract_aanwezig, 
             F.fk_contract_id, 
-            Huurder = CONT.fk_klant_id, 
-            Eenheid = F.bk_eenheidnr_, 
+            Huurder = CONT.fk_klant_id,
+			[Huurder naam] = CUS.[Name],
+            Eenheid = F.bk_eenheidnr_,
+			[Juridisch eigenaar] = COALESCE(CTE_JUR.[Juridisch Eigenaar], 'Staedion'),
             [Sleutel eenheid] = F.fk_eenheid_id, 
             [Sleutel contract] = F.fk_contract_id, 
             [Sleutel klant] = CONT.fk_klant_id, 
@@ -201,11 +213,11 @@ with CTE_eenzijdige_wijken
             --                             THEN 1
             --                             ELSE 0
             --                         END, 
-            [Eenzijdige verhuring] = case
-                                         when WHT.descr in('Vrije sector', 'Boven inkomensgrens')
-                                         then 1
-                                         else 0
-                                     end, 
+            [Eenzijdige verhuring] = CASE
+                                         WHEN WHT.descr IN('Vrije sector', 'Boven inkomensgrens')
+                                         THEN 1
+                                         ELSE 0
+                                     END, 
             [Categorie passendheid - CNS] = WHT.descr, 
             [Toelichting] = WHT.descr, 
             [Corpodata type] = TT.fk_eenheid_type_corpodata_id, 
@@ -227,93 +239,105 @@ with CTE_eenzijdige_wijken
             [Is passend verhuurd] = F.Ispassend, 
             [Inkomenscategorie passendheid] = F.inkomenscategorie_passendheid, 
             Inkomen = f.inkomen,
-			[Soort inkomen] = case
-								when I.Inkomensgrens = 'Laag' and f.inkomen > 10 then concat('1. Laag inkomen < ', format(I.InkomenMax, 'C0', 'nl-NL'))
-								when I.Inkomensgrens = 'Midden' then concat('2. Midden inkomen ', format(I.InkomenMin, 'C0', 'nl-NL') , ' - ', format(I.InkomenMax, 'C0', 'nl-NL'))
-								when I.Inkomensgrens = 'Hoog' then concat('3. Hoog inkomen > ', format(I.InkomenMin, 'C0', 'nl-NL'))
-								when I.Inkomensgrens is null and f.inkomen > 10 then '5. Inkomensgrens onbekend'
-								else '4. Inkomen onbekend (leeg of < €10)'
-							  end,
-			Inkomensgrens = case
-								when I.Inkomensgrens = 'Laag' then 0
-								when I.Inkomensgrens = 'Midden' then 1
-								when I.Inkomensgrens = 'Hoog' then 2
-								when I.Inkomensgrens is null then 3
-							end,
+			[Soort inkomen] = CASE
+								WHEN I.Inkomensgrens = 'Laag' AND f.inkomen > 10 THEN CONCAT('1. Laag inkomen < ', FORMAT(I.InkomenMax, 'C0', 'nl-NL'))
+								WHEN I.Inkomensgrens = 'Midden' THEN CONCAT('2. Midden inkomen ', FORMAT(I.InkomenMin, 'C0', 'nl-NL') , ' - ', FORMAT(I.InkomenMax, 'C0', 'nl-NL'))
+								WHEN I.Inkomensgrens = 'Hoog' THEN CONCAT('3. Hoog inkomen > ', FORMAT(I.InkomenMin, 'C0', 'nl-NL'))
+								WHEN I.Inkomensgrens IS NULL AND f.inkomen > 10 THEN '5. Inkomensgrens onbekend'
+								ELSE '4. Inkomen onbekend (leeg of < €10)'
+							  END,
+			Inkomensgrens = CASE
+								WHEN I.Inkomensgrens = 'Laag' THEN 0
+								WHEN I.Inkomensgrens = 'Midden' THEN 1
+								WHEN I.Inkomensgrens = 'Hoog' THEN 2
+								WHEN I.Inkomensgrens IS NULL THEN 3
+							END,
 			[Europaregeling norm] = I.Aandeel,
-            [Huurtoeslag gerechtigd] = case
-                                           when f.contractanten = 1
-                                                and f.inkomen < 30846
-                                           then 'Ja'
-                                           when f.contractanten > 1
-                                                and f.inkomen < 61692
-                                           then 'Ja'
-                                           else 'nee'
-                                       end,
+            [Huurtoeslag gerechtigd] = CASE
+                                           WHEN f.contractanten = 1
+                                                AND f.inkomen < 30846
+                                           THEN 'Ja'
+                                           WHEN f.contractanten > 1
+                                                AND f.inkomen < 61692
+                                           THEN 'Ja'
+                                           ELSE 'nee'
+                                       END,
 
             Rekenhuur = HPR.subsidiabelehuur, 
             [Ingangsdatum contract verantwoording] = F.dt_start_contract, 
             [Ingangsdatum huurcontract] = CONT.dt_ingang, 
-            [Controle-opmerking] = case
-                                       when upper(K.descr) like '%VPS%'
-                                            or upper(K.descr) like '%LIVABLE%'
-                                       then 'Niet meegenomen: VPS/Livable'
-                                       else case
-                                                when F.contract_aanwezig in('Contract vervallen', 'Contract onbekend')
-                                                then 'Niet meegenomen: geen verhuurcontract'
-                                                else case
-                                                         when E.staedion_verhuurteam = 'Verhuurteam 3 - studenten'
-                                                         then 'Niet meegenomen: verhuurteam studenten'
-                                                         else case 
-																when E.staedion_fk_ftcluster_id = 13920 and CONT.dt_ingang = '20210101'
-																		then 'Niet meegenomen: contracten overgenomen' 
-																		else case when F.dossier_volledig = 'Dossier incompleet' 
-																				then 'Niet meegenomen: '+ coalesce(F.dossier_reden_niet_volledig,'incompleet dossier')
-																				else 'OK' 
-																		end		
-																end
-                                                     end
-                                            end
-                                   end
+            [Controle-opmerking] = CASE
+                                       WHEN UPPER(K.descr) LIKE '%VPS%'
+                                            OR UPPER(K.descr) LIKE '%LIVABLE%'
+                                       THEN 'Niet meegenomen: VPS/Livable'
+                                       ELSE CASE
+                                                WHEN F.contract_aanwezig IN('Contract vervallen', 'Contract onbekend')
+                                                THEN 'Niet meegenomen: geen verhuurcontract'
+                                                ELSE CASE
+                                                         WHEN E.staedion_verhuurteam LIKE 'Verhuurteam%studenten%'
+                                                         THEN 'Niet meegenomen: verhuurteam studenten'
+                                                         ELSE CASE 
+																WHEN E.staedion_fk_ftcluster_id = 13920 AND CONT.dt_ingang = '20210101'
+																		THEN 'Niet meegenomen: contracten overgenomen' 
+																		ELSE CASE WHEN F.dossier_volledig = 'Dossier incompleet' 
+																				THEN 'Niet meegenomen: '+ COALESCE(F.dossier_reden_niet_volledig,'incompleet dossier')
+																				ELSE 'OK' 
+																		END		
+																END
+                                                     END
+                                            END
+                                   END
 			,[Naam huurder] = K.descr
 			
 			-- BEGIN 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
 			,[Huishouden]			= U.Huishouden
 			,[Max inkomen]			= P.InkomenMax
-			,[Passendheidsregeling] = iif(F.inkomen < P.InkomenMax 
-											and F.geliberaliseerd = 'Niet geliberaliseerd'
+			,[Passendheidsregeling] = IIF(F.inkomen < P.InkomenMax 
+											AND F.geliberaliseerd = 'Niet geliberaliseerd'
 											-- and F.inkomen > 10
-											and U.[Korting leegstandsbeheer] = 0
-											and TT.fk_eenheid_type_corpodata_id in ('WON ZELF', 'WON ONZ'), 1, 0)
+											AND U.[Korting leegstandsbeheer] = 0
+											AND TT.fk_eenheid_type_corpodata_id IN ('WON ZELF', 'WON ONZ'), 1, 0)
 			,P.[Aftoppingsgrens]
-			,[Passend toegewezen]	= iif(F.inkomen < P.InkomenMax 
-											and F.geliberaliseerd = 'Niet geliberaliseerd'
+			,[Passend toegewezen]	= IIF(F.inkomen < P.InkomenMax 
+											AND F.geliberaliseerd = 'Niet geliberaliseerd'
 											-- and F.inkomen > 10
-											and U.[Korting leegstandsbeheer] = 0
-											and TT.fk_eenheid_type_corpodata_id in ('WON ZELF', 'WON ONZ')
-											and HPR.subsidiabelehuur <= P.[Aftoppingsgrens], 1 , 0)
+											AND U.[Korting leegstandsbeheer] = 0
+											AND TT.fk_eenheid_type_corpodata_id IN ('WON ZELF', 'WON ONZ')
+											AND HPR.subsidiabelehuur <= P.[Aftoppingsgrens], 1 , 0)
 			,U.[Korting leegstandsbeheer]
 			,[Passend toewijzen norm] = P.Aandeel
 			-- EIND 2021-10-01 MV: Eigen toetsing middels flexibele configuratie tabellen
 
 			-- select F.*
-     from backup_empire_dwh.dbo.[contract] as CONT
-          left outer join backup_empire_dwh.dbo.f_verantwoording_verhuring as F on CONT.id = F.fk_contract_id
-          join backup_empire_dwh.dbo.wht_passendheid as WHT on F.fk_wht_passendheid_id = WHT.id
-          join backup_empire_dwh.dbo.eenheid as E on E.id = F.fk_eenheid_id
-          join backup_empire_dwh.dbo.technischtype as TT on TT.id = E.fk_technischtype_id
-          join backup_empire_dwh.dbo.doelgroep as DG on DG.id = E.fk_doelgroep_id
-          left outer join backup_empire_dwh.dbo.klant as K on K.id = CONT.fk_klant_id
-          left outer join CTE_eenzijdige_wijken as CTE_CBS on CTE_CBS.[sleutel buurt] = E.fk_cbsbuurt_id
-		  left outer join empire_staedion_data.dbo.Europaregeling_Inkomensgrens I on year(F.dt_start_contract) = I.Jaar and F.inkomen between I.InkomenMin and I.InkomenMax
-		  left outer join CTE_uitzondering U on CONT.id = U.fk_contract_id and year(CONT.dt_ingang) = U.dt_ingang_jaar
-		  left outer join empire_staedion_data.dbo.Passendtoewijzen_Inkomensgrens P on year(F.dt_start_contract) = P.Jaar and U.Huishouden = P.Huishouden
+     FROM backup_empire_dwh.dbo.[contract] AS CONT
+          LEFT OUTER JOIN backup_empire_dwh.dbo.f_verantwoording_verhuring AS F ON CONT.id = F.fk_contract_id
+          JOIN backup_empire_dwh.dbo.wht_passendheid AS WHT ON F.fk_wht_passendheid_id = WHT.id
+          JOIN backup_empire_dwh.dbo.eenheid AS E ON E.id = F.fk_eenheid_id
+          JOIN backup_empire_dwh.dbo.technischtype AS TT ON TT.id = E.fk_technischtype_id
+          JOIN backup_empire_dwh.dbo.doelgroep AS DG ON DG.id = E.fk_doelgroep_id
+		  LEFT OUTER JOIN empire_data.dbo.Customer AS CUS ON CUS.[No_] = CONT.fk_klant_id
+		  LEFT OUTER JOIN cte_juridisch_eigenaar AS CTE_Jur ON CONT.id = CTE_JUR.fk_contract_id AND CTE_Jur.Volgnr = 1
+		  -- JvdW 20220124 LEFT OUTER JOIN empire_data.dbo.Staedion$Realty_Object_Owner_Supervisor AS O ON O.[Realty Object No_] = F.bk_eenheidnr_ 
+		  -- JvdW 20220124 LEFT OUTER JOIN empire_data.dbo.Contact AS CON ON CON.[No_] = O.[Owner]
+          LEFT OUTER JOIN backup_empire_dwh.dbo.klant AS K ON K.id = CONT.fk_klant_id
+          LEFT OUTER JOIN CTE_eenzijdige_wijken AS CTE_CBS ON CTE_CBS.[sleutel buurt] = E.fk_cbsbuurt_id
+		  LEFT OUTER JOIN CTE_uitzondering U ON CONT.id = U.fk_contract_id AND YEAR(CONT.dt_ingang) = U.dt_ingang_jaar
+		  LEFT OUTER JOIN empire_staedion_data.dbo.Europaregeling_Inkomensgrens I ON YEAR(CONT.dt_ingang) = I.Jaar
+					--AND F.inkomen BETWEEN I.InkomenMin AND I.InkomenMax
+					AND (
+							(I.Jaar < 2022 AND F.inkomen BETWEEN I.InkomenMin AND I.InkomenMax)
+							OR
+							(I.Jaar = 2022 AND F.inkomen BETWEEN I.InkomenMin AND iif(U.Huishouden = 'MPHH', 45014, I.InkomenMax))
+						)
+
+					--AND (I.Jaar = 2022 AND iif(U.Huishouden IN ('EPHH', 'MPHH'), U.Huishouden, '1') = iif(I.Huishouden IN ('EPHH', 'MPHH'), I.Huishouden, '1')) --F.dt_start_contract
+		  LEFT OUTER JOIN empire_staedion_data.dbo.Passendtoewijzen_Inkomensgrens P ON YEAR(CONT.dt_ingang) = P.Jaar AND U.Huishouden = P.Huishouden
           --left outer join cte_contractwijzigingen as CTE_CTR
           --on CTR.[Eenheidnr_] = E.bk_nr_
           --and CTR.Ingangsdatum =  CONT.dt_ingang
-          outer apply empire_Staedion_Data.dbo.ITVfnHuurprijs(E.bk_nr_, CONT.dt_ingang) as HPR
-     where(year(CONT.dt_ingang) >= 2015
-           or year(F.dt_start_contract) >= 2015)
+          OUTER APPLY empire_Staedion_Data.dbo.ITVfnHuurprijs(E.bk_nr_, CONT.dt_ingang) AS HPR
+     WHERE (YEAR(CONT.dt_ingang) >= 2015
+           OR YEAR(F.dt_start_contract) >= 2015)
 
           -- year(F.dt_start_contract) >= 2015
           --and				month(F.dt_start_contract) < 5

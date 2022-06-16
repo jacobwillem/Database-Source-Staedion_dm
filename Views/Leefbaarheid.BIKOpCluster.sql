@@ -13,6 +13,7 @@ GO
 
 
 
+
 CREATE VIEW [Leefbaarheid].[BIKOpCluster]
 AS
 SELECT Clusternummer = ELS.Clusternummer
@@ -39,6 +40,8 @@ SELECT Clusternummer = ELS.Clusternummer
 			THEN 'BIK2020'
 		WHEN ELS.Jaar = 2020
 			THEN 'BIK2021'
+		WHEN ELS.Jaar = 2021
+			THEN 'BIK2022'
 		ELSE NULL
 		END
 	,AantalWoningen = ELS.AantalWoningen

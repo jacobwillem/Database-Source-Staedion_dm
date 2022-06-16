@@ -3,6 +3,7 @@ GO
 SET ANSI_NULLS ON
 GO
 
+
 CREATE VIEW [Datakwaliteit].[vw_TriggerRealisatieDetails]
 as 
 /* ###################################################################################################
@@ -32,7 +33,8 @@ SELECT r.id_samengesteld,
        r.[datEinde], 
        r.[Aantal], 
        r.[Hyperlink], 
-       r.[Omschrijving], 
+       r.[Omschrijving],
+	   r.[Bevinding],
        [fk_trigger_id] = t.id
 
 FROM [Datakwaliteit].[vw_RealisatieDetails] r

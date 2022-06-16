@@ -72,6 +72,7 @@ CREATE TABLE [Eenheden].[Woningwaardering]
 [Punten energie] [decimal] (12, 2) NULL,
 [Energiewaardering] [varchar] (30) COLLATE Latin1_General_CI_AS NULL,
 [EPA-label] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
+[EPA NTA8800] [nvarchar] (10) COLLATE Latin1_General_CI_AS NULL,
 [Stadsverwarming] [varchar] (3) COLLATE Latin1_General_CI_AS NULL,
 [Vergoeding stadsverwarming] [varchar] (3) COLLATE Latin1_General_CI_AS NULL,
 [Punten oppervlakte verwarmd] [decimal] (12, 2) NULL,

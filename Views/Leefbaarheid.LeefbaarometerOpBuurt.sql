@@ -13,16 +13,17 @@ GO
 
 
 
-create view [Leefbaarheid].[LeefbaarometerOpBuurt] as
+
+CREATE view [Leefbaarheid].[LeefbaarometerOpBuurt] as
 
 with CTE_LBM AS (
 SELECT BuurtCode, Jaar, LeefbaarometerKlasse  
 FROM   
-(SELECT BuurtCode = CODE, [2002] = KL02, [2003] = KL02, [2004] = KL02, [2005] = KL02, [2006] = KL02, [2007] = KL02, [2008] = KL08, [2009] = KL08, [2010] = KL08, [2011] = KL08, [2012] = KL12, [2013] = KL12, [2014] = KL14, [2015] = KL14, [2016] = KL16, [2017] = KL16, [2018] = KL18, [2019] = KL18, [2020] = KL18
+(SELECT BuurtCode = CODE, [2002] = KL02, [2003] = KL02, [2004] = KL02, [2005] = KL02, [2006] = KL02, [2007] = KL02, [2008] = KL08, [2009] = KL08, [2010] = KL08, [2011] = KL08, [2012] = KL12, [2013] = KL12, [2014] = KL14, [2015] = KL14, [2016] = KL16, [2017] = KL16, [2018] = KL18, [2019] = KL18, [2020] = KL18, [2021] = KL18
    FROM [empire_staedion_data].[bik].[Leefbarometer_buurtscore]) p 
 UNPIVOT  
    (LeefbaarometerKlasse FOR Jaar IN   
-      ([2002], [2003], [2004], [2005], [2006], [2007], [2008], [2009], [2010], [2011], [2012], [2013], [2014], [2015], [2016], [2017], [2018], [2019], [2020])) as unpvt),
+      ([2002], [2003], [2004], [2005], [2006], [2007], [2008], [2009], [2010], [2011], [2012], [2013], [2014], [2015], [2016], [2017], [2018], [2019], [2020], [2021])) as unpvt),
 CTE_LBMDIM AS(
 
 SELECT BuurtCode = [GBD]
@@ -131,6 +132,19 @@ union all
 
 SELECT BuurtCode = [GBD]
 	  ,Jaar = 2020
+      ,DimensieTotaalRelatief = [RLBRMTR18]
+	  ,DimensieTotaalAbsoluut = 4.1940 + [RLBRMTR18]
+      ,DimensieWoningRelatief = [RLBWON18]
+      ,DimensieBewonersRelatief = [RLBBEV18]
+      ,DimensieVoorzieningenRelatief = [RLBVRZ18]
+      ,DimensieVeiligheidRelatief = [RLBVEI18]
+      ,DimensieFysiekeOmgevingRelatief = [RLBFYS18]
+FROM [empire_staedion_data].[bik].[Leefbarometer_dimensiescore_Buurt_start]
+
+union all
+
+SELECT BuurtCode = [GBD]
+	  ,Jaar = 2021
       ,DimensieTotaalRelatief = [RLBRMTR18]
 	  ,DimensieTotaalAbsoluut = 4.1940 + [RLBRMTR18]
       ,DimensieWoningRelatief = [RLBWON18]

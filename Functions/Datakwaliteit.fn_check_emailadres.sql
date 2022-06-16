@@ -10,10 +10,11 @@ ZIE         : Datakwaliteit
 WIJZIGINGEN  
 ------------------------------------------------------------------------------------------------------
 Versie 1
+JvdW 20220105 '_demy_@live.nl ' werd afgekeurd maar is toch ok volgens Marieke
 ------------------------------------------------------------------------------------------------------
 CHECKS                   
 ------------------------------------------------------------------------------------------------------
-declare @email as nvarchar(256) = 'info@@staedion.nl'
+declare @email as nvarchar(256) = '_demy_@live.nl'
 select [email] = @email, [staedion_dm].[Datakwaliteit].[fn_check_emailadres](@email) as valid
 
 declare @email as nvarchar(256) = 'info@staedion.nl'
@@ -49,7 +50,7 @@ BEGIN
                           when @email like '% %' then 0
                           when @email like ('%["(),:;<>\]%') then 0
                           when substring(@email,charindex('@',@email),len(@email)) like ('%[!#$%&*+/=?^`_{|]%') then 0
-                          when (left(@email, 1) like ('[-_.+]') or right(@email, 1) like ('[-_.+]')) then 0                                                                                    
+                          when (left(@email, 1) like ('[-.+]') or right(@email, 1) like ('[-_.+]')) then 0                                                                                    
                           when (@email like '%[%' or @email like '%]%') then 0
                           when @email like '%@%@%' then 0
                           when @email not like '_%@_%._%' then 0
